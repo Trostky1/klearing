@@ -1,0 +1,75 @@
+# Builds the Windows .exe and macOS .app on GitHub's free runners —
+# the no-cost answer to "PyInstaller can't cross-compile".
+#
+# Run it from the repo's Actions tab (workflow_dispatch), or push a
+# tag like v1.0.0. Artifacts appear on the run page; tagged runs also
+# attach them to a GitHub Release.
+
+name: build
+
+on:
+  workflow_dispatch:
+  push:
+    tags: ["v*"]
+
+# Needed by the release-attach step; harmless for plain artifact runs.
+permissions:
+  contents: write
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        include:
+          - os: windows-latest
+            artifact: Klearing-windows
+            path: dist/Klearing-windows.zip
+          - os: macos-latest
+            artifact: Klearing-macos
+            path: dist/Klearing-macos.zip
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt pyinstaller
+
+      - name: Build (Windows)
+        if: runner.os == 'Windows'
+        run: |
+          pyinstaller build/klearing.spec --noconfirm --distpath dist --workpath build/work
+          Compress-Archive -Path dist/Klearing -DestinationPath dist/Klearing-windows.zip
+
+      - name: Build (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          pyinstaller build/klearing.spec --noconfirm --distpath dist --workpath build/work
+          ditto -c -k --keepParent dist/Klearing.app dist/Klearing-macos.zip
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact }}
+          path: ${{ matrix.path }}
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/')
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: Klearing-*
+          path: dist
+          merge-multiple: true
+
+      - name: Attach both platform packages to release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            dist/Klearing-windows.zip
+            dist/Klearing-macos.zip

@@ -1,0 +1,24 @@
+name: checks
+
+on:
+  push:
+    branches: [main, "release/**"]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  regressions:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m pip install -r requirements.txt
+      - run: python -m compileall -q app.py setup_wizard.py banks scripts
+      - run: python scripts/ledger_regression.py
+      - run: python scripts/bank_sign_convention_regression.py
+      - run: python scripts/money_cents_regression.py
+      - run: python scripts/ui_consolidation_regression.py

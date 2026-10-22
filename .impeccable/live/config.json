@@ -1,0 +1,6 @@
+{
+  "files": ["ui.py"],
+  "insertBefore": "</body>",
+  "commentSyntax": "html",
+  "cspChecked": true
+}

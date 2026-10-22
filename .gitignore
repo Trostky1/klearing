@@ -1,0 +1,34 @@
+# Secrets and local data — never committed
+.env
+.env.*
+!.env.example
+*.db
+*.log
+*.json.key
+service-account*.json
+*.klearingbackup
+
+# Python
+__pycache__/
+*.pyc
+venv/
+.venv/
+
+# Build output
+build/dist/
+build/work/
+build/work-*/
+*.spec.bak
+dist/
+dist-*/
+
+# Local tooling artifacts
+.playwright-mcp/
+.claude/
+# Ephemeral live-mode state. The critique reports and live/config.json are
+# deliberately not ignored: those are authored project content.
+.impeccable/live/sessions/
+.impeccable/live/annotations/
+
+# Local git worktrees for isolated feature work
+.worktrees/

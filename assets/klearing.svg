@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!--
+    Klearing icon — a K whose lower leg is the checkmark: things
+    filter through and come out resolved. Palette matches the app:
+    off-white tile, slate glyph, one blue accent.
+    Source of truth for build/make_icons.py, which draws the same
+    geometry with Pillow to produce klearing.ico / klearing.icns.
+  -->
+  <rect x="8" y="8" width="496" height="496" rx="104" fill="#F7F6F2"/>
+  <rect x="8" y="8" width="496" height="496" rx="104" fill="none"
+        stroke="#E4E4E7" stroke-width="8"/>
+  <!-- K stem -->
+  <line x1="168" y1="132" x2="168" y2="380" stroke="#18181B"
+        stroke-width="62" stroke-linecap="round"/>
+  <!-- K upper arm -->
+  <line x1="180" y1="266" x2="330" y2="130" stroke="#18181B"
+        stroke-width="62" stroke-linecap="round"/>
+  <!-- lower leg = checkmark (accent) -->
+  <polyline points="180,266 288,378 428,192" fill="none" stroke="#2563EB"
+            stroke-width="62" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

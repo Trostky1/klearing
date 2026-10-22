@@ -1,0 +1,242 @@
+"""Reusable legacy Wave-backed tax projection golden fixtures.
+
+These synthetic histories intentionally exercise the current ``kl_transactions``
+calculation path before it is retired.  Phase 3 will replay the same economic
+events through the native Ledger and compare every captured money field.
+
+All money values are integer cents.  Expected results are snapshots, not a
+second implementation of the tax formulas.
+"""
+
+
+LEGACY_PROJECTION_SCENARIOS = (
+    {
+        "name": "sole_prop_midyear",
+        "settings": {
+            "filing_status": "single",
+            "state": "IA",
+            "estimated_other_income": 1_200_000,
+            "tax_year": 2026,
+            "business_type": "sole_prop",
+        },
+        "as_of": "2026-06-30",
+        "section_179_cents": 750_000,
+        "home_office_square_feet": 120,
+        "transactions": (
+            {
+                "id": "sole-sale",
+                "date": "2026-03-31",
+                "description": "Spring wholesale orders",
+                "merchant": "Example customers",
+                "amount_cents": 12_000_000,
+                "category": "gross_receipts",
+                "approved": 1,
+            },
+            {
+                "id": "sole-returns",
+                "date": "2026-04-03",
+                "description": "Customer returns",
+                "merchant": "Example customers",
+                "amount_cents": -500_000,
+                "category": "returns_and_allowances",
+                "approved": 1,
+            },
+            {
+                "id": "sole-supplies",
+                "date": "2026-04-20",
+                "description": "Production supplies",
+                "merchant": "Example supplier",
+                "amount_cents": -2_000_000,
+                "category": "supplies",
+                "approved": 1,
+            },
+            {
+                "id": "sole-office",
+                "date": "2026-05-10",
+                "description": "Office equipment and services",
+                "merchant": "Example office vendor",
+                "amount_cents": -1_000_000,
+                "category": "other_expense",
+                "override_category": "office_expense",
+                "approved": 1,
+            },
+            {
+                "id": "sole-draw",
+                "date": "2026-05-31",
+                "description": "Owner draw",
+                "merchant": "Owner",
+                "amount_cents": -500_000,
+                "category": "owner_draw",
+                "approved": 1,
+            },
+            {
+                "id": "sole-transfer",
+                "date": "2026-06-01",
+                "description": "Transfer between accounts",
+                "merchant": "Example bank",
+                "amount_cents": -300_000,
+                "category": "transfer",
+                "approved": 1,
+            },
+            {
+                "id": "sole-pending",
+                "date": "2026-06-15",
+                "description": "Unreviewed deposit",
+                "merchant": "Unknown",
+                "amount_cents": 9_999_999,
+                "category": "gross_receipts",
+                "approved": 0,
+            },
+            {
+                "id": "sole-rejected",
+                "date": "2026-06-16",
+                "description": "Rejected duplicate",
+                "merchant": "Unknown",
+                "amount_cents": 8_888_888,
+                "category": "gross_receipts",
+                "approved": 2,
+            },
+        ),
+        "expected": {
+            "basis": "approved_tax_transactions",
+            "is_estimate_complete": True,
+            "approved_transaction_count": 6,
+            "income": {
+                "ytd_net_income_cents": 8_500_000,
+                "annualized_net_income_cents": 17_140_884,
+                "days_elapsed": 181,
+                "annualization_method": (
+                    "YTD net income multiplied by 365 / days elapsed"
+                ),
+                "estimated_other_income_cents": 1_200_000,
+            },
+            "deductions": {
+                "section_179_requested_cents": 750_000,
+                "section_179_allowed_cents": 750_000,
+                "section_179_limit_cents": 256_000_000,
+                "home_office_square_feet": 120,
+                "home_office_deduction_cents": 60_000,
+                "standard_deduction_cents": 1_610_000,
+                "half_self_employment_tax_deduction_cents": 1_153_740,
+                "qbi_deduction_cents": 2_953_429,
+            },
+            "taxable_income": {
+                "adjusted_gross_income_cents": 16_377_144,
+                "federal_taxable_before_qbi_cents": 14_767_144,
+                "federal_taxable_income_cents": 11_813_715,
+                "qbi_income_cents": 15_177_144,
+            },
+            "taxes": {
+                "federal_income_tax_cents": 2_095_092,
+                "self_employment_tax_cents": 2_307_481,
+                "social_security_tax_cents": 1_870_115,
+                "medicare_tax_cents": 437_366,
+                "additional_medicare_tax_cents": 0,
+                "iowa_income_tax_cents": 448_921,
+                "total_estimated_tax_cents": 4_851_494,
+            },
+            "quarterly_estimates": [
+                {"due_date": "2026-04-15", "amount_cents": 1_212_874},
+                {"due_date": "2026-06-15", "amount_cents": 1_212_874},
+                {"due_date": "2026-09-15", "amount_cents": 1_212_874},
+                {"due_date": "2027-01-15", "amount_cents": 1_212_874},
+            ],
+        },
+    },
+    {
+        "name": "s_corp_year_end",
+        "settings": {
+            "filing_status": "married_filing_jointly",
+            "state": "IA",
+            "estimated_other_income": 2_500_000,
+            "tax_year": 2026,
+            "business_type": "s_corp",
+        },
+        "as_of": "2026-12-31",
+        "section_179_cents": 500_000,
+        "home_office_square_feet": 0,
+        "transactions": (
+            {
+                "id": "scorp-sale",
+                "date": "2026-02-28",
+                "description": "Annual sales",
+                "merchant": "Example customers",
+                "amount_cents": 20_000_000,
+                "category": "gross_receipts",
+                "approved": 1,
+            },
+            {
+                "id": "scorp-returns",
+                "date": "2026-03-05",
+                "description": "Returns and allowances",
+                "merchant": "Example customers",
+                "amount_cents": -1_000_000,
+                "category": "returns_and_allowances",
+                "approved": 1,
+            },
+            {
+                "id": "scorp-contractors",
+                "date": "2026-08-15",
+                "description": "Contract production work",
+                "merchant": "Example contractor",
+                "amount_cents": -2_000_000,
+                "category": "contract_labor",
+                "approved": 1,
+            },
+            {
+                "id": "scorp-legal",
+                "date": "2026-10-01",
+                "description": "Legal and accounting",
+                "merchant": "Example advisor",
+                "amount_cents": -2_000_000,
+                "category": "legal_and_professional",
+                "approved": 1,
+            },
+        ),
+        "expected": {
+            "basis": "approved_tax_transactions",
+            "is_estimate_complete": False,
+            "approved_transaction_count": 4,
+            "income": {
+                "ytd_net_income_cents": 15_000_000,
+                "annualized_net_income_cents": 15_000_000,
+                "days_elapsed": 365,
+                "annualization_method": (
+                    "YTD net income multiplied by 365 / days elapsed"
+                ),
+                "estimated_other_income_cents": 2_500_000,
+            },
+            "deductions": {
+                "section_179_requested_cents": 500_000,
+                "section_179_allowed_cents": 500_000,
+                "section_179_limit_cents": 256_000_000,
+                "home_office_square_feet": 0,
+                "home_office_deduction_cents": 0,
+                "standard_deduction_cents": 3_220_000,
+                "half_self_employment_tax_deduction_cents": 0,
+                "qbi_deduction_cents": 2_756_000,
+            },
+            "taxable_income": {
+                "adjusted_gross_income_cents": 17_000_000,
+                "federal_taxable_before_qbi_cents": 13_780_000,
+                "federal_taxable_income_cents": 11_024_000,
+                "qbi_income_cents": 14_500_000,
+            },
+            "taxes": {
+                "federal_income_tax_cents": 1_367_680,
+                "self_employment_tax_cents": 0,
+                "social_security_tax_cents": 0,
+                "medicare_tax_cents": 0,
+                "additional_medicare_tax_cents": 0,
+                "iowa_income_tax_cents": 418_912,
+                "total_estimated_tax_cents": 1_786_592,
+            },
+            "quarterly_estimates": [
+                {"due_date": "2026-04-15", "amount_cents": 446_648},
+                {"due_date": "2026-06-15", "amount_cents": 446_648},
+                {"due_date": "2026-09-15", "amount_cents": 446_648},
+                {"due_date": "2027-01-15", "amount_cents": 446_648},
+            ],
+        },
+    },
+)
