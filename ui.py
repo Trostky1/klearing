@@ -1164,6 +1164,15 @@ STYLE = _ROOT_VARS + _FONT_FACES + """
     font-variant-numeric: tabular-nums;
   }
   .meta > span + span { margin-left: var(--sp-2); }
+  /* Demo mode banner, shown above every page while a demo is open. */
+  .demo-banner {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: var(--sp-3); flex-wrap: wrap; margin-bottom: var(--sp-4);
+    padding: var(--sp-3) var(--sp-4); border-radius: var(--radius-sm);
+    background: var(--warn-soft); border: 1px solid var(--warn-line);
+    color: var(--ink); font-size: var(--fs-base);
+  }
+
   /* Invoice progress: Create, Send, Get paid. Read-only status. */
   .progress-steps {
     list-style: none; margin: 0 0 var(--gap-section); padding: 0;
@@ -3115,6 +3124,13 @@ def render_shell(active_tab, header_extra, content, message=None, error=None,
 </html>"""
 
     header_extra = render_business_switcher() + (header_extra or "")
+    demo_banner = ""
+    if paths.is_demo():
+        demo_banner = (
+            '<div class="demo-banner" role="status"><span>This is a demo with '
+            'made-up data. Nothing here is real.</span>'
+            '<form method="post" action="/demo/exit" class="inline-form">'
+            '<button class="check" type="submit">Exit demo</button></form></div>')
     page_title = escape(active_tab or APP_NAME)
     return f"""<!doctype html>
 <html lang="en">
@@ -3132,6 +3148,7 @@ def render_shell(active_tab, header_extra, content, message=None, error=None,
     <main class="main" id="main" tabindex="-1"
           data-section="{escape(active_tab or 'Home')}">
       <div class="main-inner{' wide' if wide else ''}">
+        {demo_banner}
         <header>
           <h1>{page_title}</h1>
           <div class="header-actions">{render_search_chip()}{header_extra}{render_new_menu()}</div>
