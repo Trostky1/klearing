@@ -785,6 +785,10 @@ STYLE = _ROOT_VARS + _FONT_FACES + """
     display: grid; grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: var(--sp-4);
   }
+  /* Three cards need about 220px each; below that they stack. */
+  @media (max-width: 900px) {
+    .today-grid { grid-template-columns: minmax(0, 1fr); }
+  }
   .today-card {
     display: flex; flex-direction: column; gap: var(--sp-2);
     padding: var(--sp-5); border-radius: var(--radius);
