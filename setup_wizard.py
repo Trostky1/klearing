@@ -318,6 +318,14 @@ def render_step_password(message=None, error=None):
       approve them into your native ledger; nothing is ever posted without a click.
       Setup takes about ten minutes.</div>
     <div class="section">
+      <div class="section-head"><h2>Just looking?</h2></div>
+      <div class="hint">Open a demo business with made-up data. It never
+        touches your real books, and it starts fresh each time.</div>
+      <form method="post" action="/setup/demo" class="mt-4">
+        <button class="check" type="submit">Take a look</button>
+      </form>
+    </div>
+    <div class="section">
       <div class="section-head"><h2>Step 1 — Set your app password</h2></div>
       <div class="hint" style="margin-bottom:14px;">{intro}</div>
       {form}

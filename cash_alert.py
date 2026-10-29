@@ -22,6 +22,7 @@ import json
 from datetime import date, timedelta
 
 import banks
+import paths
 import db
 import email_utils
 from config import APP_NAME, APP_URL
@@ -62,10 +63,29 @@ def get_config():
     }
 
 
+def _demo_cash_accounts():
+    """The demo has no bank, so its "bank" balance is made from the books.
+
+    A real bank already holds the transactions still waiting in Review, so
+    the balance is the books' cash, less waiting expenses, plus waiting
+    income. That is what makes Bank vs books reconcile in the demo."""
+    import ledger
+    books = next((row["normal_balance"] for row in ledger.trial_balance()
+                  if row["code"] == "1010"), 0)
+    waiting_out = sum(float(i["amount"]) for i in db.list_items(status="pending")
+                      if i["direction"] == "expense")
+    waiting_in = sum(float(i["amount"]) for i in db.list_items(status="pending")
+                     if i["direction"] != "expense")
+    return [{"id": "demo-checking", "name": "Operating Checking",
+             "balance": float(books) - waiting_out + waiting_in}]
+
+
 def matched_cash_accounts(cash_account_ids):
     """The selected business-cash accounts themselves
     ([{'id', 'name', 'balance'}]) — Reconcile's per-account breakdown
     needs the rows, not just their sum."""
+    if paths.is_demo():
+        return _demo_cash_accounts()
     adapter = banks.active_adapter()
     if adapter is None:
         raise RuntimeError("No bank is connected, so balances can't be read.")
@@ -109,7 +129,7 @@ def average_daily_burn():
         and item["status"] in ("approved", "pending")
         and item["date"] >= cutoff
     )
-    return total / BURN_WINDOW_DAYS
+    return float(total) / BURN_WINDOW_DAYS
 
 
 def evaluate():

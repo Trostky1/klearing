@@ -61,6 +61,7 @@ import invoice_reconcile
 import klaviyo_client
 import ledger
 import ledger_sync
+import demo_mode
 import local_host
 import ollama_client
 import paths
@@ -199,7 +200,14 @@ def _session_ok(request):
 # The exemption evaporates the moment a password is set — otherwise
 # anyone on the machine could re-run step 1 to REPLACE the password
 # mid-setup and walk in, which is exactly what the lock exists to stop.
-PRE_PASSWORD_PATHS = {"/setup", "/setup/step/1", "/setup/password"}
+PRE_PASSWORD_PATHS = {"/setup", "/setup/step/1", "/setup/password",
+                      "/setup/demo"}
+
+# In a demo these would reach a real service or change setup, so they are
+# turned off. The demo has no credentials, so most would fail anyway.
+DEMO_BLOCKED_PREFIXES = ("/check", "/plaid/", "/shopify/", "/connections/",
+                         "/settings/test-alert", "/setup/")
+DEMO_BLOCKED_SUFFIXES = ("/email", "/payment-link")
 PROCESS_HEALTH_PATH = "/__klearing_process_health"
 _legacy_business_cleanup_done = False
 
@@ -224,6 +232,14 @@ async def gatekeeper(request: Request, call_next):
     if path == "/unlock" or path == "/lock":
         return await call_next(request)
 
+    if (paths.is_demo() and request.method == "POST"
+            and path != "/setup/demo"
+            and (path.startswith(DEMO_BLOCKED_PREFIXES)
+                 or path.endswith(DEMO_BLOCKED_SUFFIXES))):
+        return RedirectResponse(
+            "/?err=" + quote("This demo is not connected to any real service."),
+            status_code=303)
+
     db.init_db()
     if not _legacy_business_cleanup_done:
         business_registry.migrate_legacy_state()
@@ -247,6 +263,19 @@ async def gatekeeper(request: Request, call_next):
 # middleware registration, so this makes the exact Host check the outermost
 # HTTP boundary and prevents redirects/lock pages from bypassing it.
 app.add_middleware(local_host.LocalHostMiddleware)
+
+
+@app.post("/setup/demo")
+def setup_demo():
+    """Start a fresh demo business. Real data is not touched."""
+    demo_mode.activate()
+    return RedirectResponse("/", status_code=303)
+
+
+@app.post("/demo/exit")
+def demo_exit():
+    demo_mode.deactivate()
+    return RedirectResponse("/", status_code=303)
 
 
 def render_unlock_page(message=None, error=None):
@@ -1223,19 +1252,21 @@ def summarize(items):
             category = row.get("suggested_category") or "No suggestion"
             entry = agg.setdefault(category, {"count": 0, "total": 0.0})
             entry["count"] += 1
-            entry["total"] += row["amount"]
+            entry["total"] += float(row["amount"])
         return sorted(agg.items(), key=lambda kv: -kv[1]["total"])
 
+    # Stored amounts come back as Decimal; these rollups are display-only
+    # floats, so convert once here rather than mixing the two types.
     income = [i for i in items if i["direction"] == "income"]
     expense = [i for i in items if i["direction"] == "expense"]
     transfer = [i for i in items if i["direction"] == "transfer"]
-    total_in = sum(i["amount"] for i in income)
-    total_out = sum(i["amount"] for i in expense)
+    total_in = sum(float(i["amount"]) for i in income)
+    total_out = sum(float(i["amount"]) for i in expense)
     return {
         "total_in": total_in,
         "total_out": total_out,
         "net": total_in - total_out,
-        "transfer_total": sum(i["amount"] for i in transfer),
+        "transfer_total": sum(float(i["amount"]) for i in transfer),
         "income": rollup(income),
         "expense": rollup(expense),
         "transfer": rollup(transfer),
@@ -1249,7 +1280,7 @@ def _delta_pill_money(current, prior, kind):
     (spending more isn't inherently good or bad). Dollar change, not
     percent: a category that didn't exist last period reads as its
     honest full amount, not a meaningless percent-of-zero."""
-    change = current - prior
+    change = float(current) - float(prior)
     if abs(change) < 0.005:
         return '<span class="delta neutral">no change</span>'
     arrow = "&#9650;" if change > 0 else "&#9660;"
@@ -2767,7 +2798,7 @@ def dashboard_cash():
     # balance-minus-pending answers "what can I safely commit to spend
     # right now" without double-counting money that's already spoken
     # for. Only shown when it would actually differ from the balance.
-    pending_out = sum(i["amount"] for i in db.list_items(status="pending")
+    pending_out = sum(float(i["amount"]) for i in db.list_items(status="pending")
                       if i["direction"] == "expense")
     safe_to_spend = money(max(balance - pending_out, 0)) if pending_out > 0 else None
 
@@ -2779,7 +2810,7 @@ def dashboard_cash():
     spark_values, _spark_labels = weekly_net_series(8)
     trend_svg = ""
     if len(spark_values) >= 2:
-        running = Decimal(0)
+        running = 0.0
         cumulative = []
         for v in spark_values:
             running += v
@@ -3004,8 +3035,8 @@ def gather_reconciliation():
         (i for i in pending if i["direction"] == "expense"), key=sort_key)
     pending_in_items = sorted(
         (i for i in pending if i["direction"] != "expense"), key=sort_key)
-    pending_out = sum(i["amount"] for i in pending_out_items)
-    pending_in = sum(i["amount"] for i in pending_in_items)
+    pending_out = sum(float(i["amount"]) for i in pending_out_items)
+    pending_in = sum(float(i["amount"]) for i in pending_in_items)
 
     difference = books_balance - bank_balance
     # Pending expenses already left the bank but aren't approved into the
@@ -3376,13 +3407,13 @@ def vendor_stats():
             item["vendor"],
             {"this_month": 0.0, "last_month": 0.0, "lifetime": 0.0, "count": 0},
         )
-        entry["lifetime"] += item["amount"]
+        entry["lifetime"] += float(item["amount"])
         entry["count"] += 1
         month = item["date"][:7]
         if month == this_month:
-            entry["this_month"] += item["amount"]
+            entry["this_month"] += float(item["amount"])
         elif month == last_month:
-            entry["last_month"] += item["amount"]
+            entry["last_month"] += float(item["amount"])
 
     threshold_pct = vendor_jump_threshold()
     rows = []
@@ -7920,14 +7951,16 @@ def _contacts_pipeline_content():
             for row in rows:
                 contact = row["contact"]
                 orders = row["orders"]
+                facts = ""
+                if orders:
+                    facts = (f'<div class="meta">{orders} order'
+                             f'{"" if orders == 1 else "s"}</div>'
+                             f'<div class="board-amount">'
+                             f'{money(row["revenue"])}</div>')
                 cards += (
                     f'<li class="board-card">'
                     f'<a href="/contacts/{contact["id"]}">'
-                    f'{escape(contact["display_name"])}</a>'
-                    f'<div class="meta">{orders} order'
-                    f'{"" if orders == 1 else "s"}</div>'
-                    f'<div class="board-amount">{money(row["revenue"])}</div>'
-                    f"</li>")
+                    f'{escape(contact["display_name"])}</a>{facts}</li>')
         else:
             cards = ('<li class="none-note">Nobody here yet. Set a stage on '
                      "a contact's own page to place them.</li>")
@@ -8648,7 +8681,7 @@ def monthly_income_series(months, business_id):
                 continue
             arr = categories.setdefault(item["suggested_category"],
                                         [0.0] * len(windows))
-            arr[idx] += item["amount"]
+            arr[idx] += float(item["amount"])
     ordered = sorted(categories.items(), key=lambda kv: -sum(kv[1]))
     return labels, ordered
 
@@ -11292,7 +11325,7 @@ def contractor_candidates():
             item["vendor"],
             {"total": 0.0, "count": 0, "categories": set()},
         )
-        entry["total"] += item["amount"]
+        entry["total"] += float(item["amount"])
         entry["count"] += 1
         entry["categories"].add(item["suggested_category"])
     rows = [

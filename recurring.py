@@ -67,7 +67,7 @@ def detect_subscriptions(business_id=None):
     first_detected_date, last_date, next_expected, runway_impact_days}]."""
     try:
         import cash_alert
-        daily_burn = cash_alert.average_daily_burn()
+        daily_burn = float(cash_alert.average_daily_burn())
     except Exception:
         daily_burn = 0.0
     by_vendor = {}
@@ -81,7 +81,7 @@ def detect_subscriptions(business_id=None):
         if when is None:
             continue
         by_vendor.setdefault(item["vendor"], []).append(
-            (when, item["amount"]))
+            (when, float(item["amount"])))
 
     found = []
     for vendor, charges in by_vendor.items():

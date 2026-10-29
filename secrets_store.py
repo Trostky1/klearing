@@ -190,6 +190,8 @@ def is_available():
 
 
 def set_secret(name, value, is_file=False):
+    if paths.is_demo():
+        raise SecretsError("Demo mode does not store credentials.")
     """Encrypt and store one credential, replacing any existing value.
     `value` may be str or bytes."""
     name = (name or "").strip()

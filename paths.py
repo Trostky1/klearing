@@ -26,7 +26,34 @@ def is_frozen():
     return getattr(sys, "frozen", False)
 
 
+_data_dir_override = None
+
+
+def set_data_dir_override(path):
+    """Point everything at another folder for now (demo mode), or pass None
+    to go back to the real one. Held in memory only: a restart is always
+    back on the real data folder."""
+    global _data_dir_override
+    _data_dir_override = Path(path) if path else None
+
+
+def is_demo():
+    return _data_dir_override is not None
+
+
+def base_data_dir():
+    """The real data folder, ignoring any demo override."""
+    return _resolve_data_dir()
+
+
 def data_dir():
+    if _data_dir_override is not None:
+        _data_dir_override.mkdir(parents=True, exist_ok=True)
+        return _data_dir_override
+    return _resolve_data_dir()
+
+
+def _resolve_data_dir():
     override = os.environ.get("KLEARING_DATA_DIR")
     if override:
         path = Path(override)

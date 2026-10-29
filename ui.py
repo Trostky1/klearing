@@ -631,16 +631,28 @@ STYLE = _ROOT_VARS + _FONT_FACES + """
      Vendors. The number leads at the display size the scale already owns,
      with its label stacked above it. Cells stay wide enough for a
      ten-character money figure, and a longer one wraps rather than clips. */
-  .stat-grid-lead { grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+  .stat-grid-lead {
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: var(--sp-3); background: transparent; border: 0; overflow: visible;
+  }
   .stat-grid-lead .stat-cell {
     flex-direction: column; justify-content: flex-start; gap: var(--sp-2);
     padding: var(--sp-4) var(--sp-5);
+    border: 1px solid var(--line); border-radius: var(--radius-sm);
   }
   .stat-grid-lead .stat-label { font-size: var(--fs-sm); font-weight: 600; }
   .stat-grid-lead .stat-value {
     font-size: var(--fs-2xl); min-width: 0; overflow-wrap: anywhere;
   }
-  .stat-grid-lead .stat-value .dash-sub { font-size: var(--fs-sm); font-weight: 400; }
+  .stat-grid-lead .stat-value .dash-sub {
+    font-size: var(--fs-sm); font-weight: 400; letter-spacing: 0; line-height: 1.4;
+  }
+  /* On a phone the lead figures stack, one per row, at the smaller size.
+     The doubled class beats the generic .stat-grid phone rule further down. */
+  @media (max-width: 640px) {
+    .stat-grid.stat-grid-lead { grid-template-columns: minmax(0, 1fr); }
+    .stat-grid-lead .stat-value { font-size: var(--fs-xl); }
+  }
   .totals {
     display: flex; gap: var(--sp-6); flex-wrap: wrap;
     margin-bottom: var(--sp-1);
@@ -778,6 +790,10 @@ STYLE = _ROOT_VARS + _FONT_FACES + """
   .today-grid {
     display: grid; grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: var(--sp-4);
+  }
+  /* Three cards need about 220px each; below that they stack. */
+  @media (max-width: 900px) {
+    .today-grid { grid-template-columns: minmax(0, 1fr); }
   }
   .today-card {
     display: flex; flex-direction: column; gap: var(--sp-2);
@@ -1164,6 +1180,15 @@ STYLE = _ROOT_VARS + _FONT_FACES + """
     font-variant-numeric: tabular-nums;
   }
   .meta > span + span { margin-left: var(--sp-2); }
+  /* Demo mode banner, shown above every page while a demo is open. */
+  .demo-banner {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: var(--sp-3); flex-wrap: wrap; margin-bottom: var(--sp-4);
+    padding: var(--sp-3) var(--sp-4); border-radius: var(--radius-sm);
+    background: var(--warn-soft); border: 1px solid var(--warn-line);
+    color: var(--ink); font-size: var(--fs-base);
+  }
+
   /* Invoice progress: Create, Send, Get paid. Read-only status. */
   .progress-steps {
     list-style: none; margin: 0 0 var(--gap-section); padding: 0;
@@ -3115,6 +3140,13 @@ def render_shell(active_tab, header_extra, content, message=None, error=None,
 </html>"""
 
     header_extra = render_business_switcher() + (header_extra or "")
+    demo_banner = ""
+    if paths.is_demo():
+        demo_banner = (
+            '<div class="demo-banner" role="status"><span>This is a demo with '
+            'made-up data. Nothing here is real.</span>'
+            '<form method="post" action="/demo/exit" class="inline-form">'
+            '<button class="check" type="submit">Exit demo</button></form></div>')
     page_title = escape(active_tab or APP_NAME)
     return f"""<!doctype html>
 <html lang="en">
@@ -3132,6 +3164,7 @@ def render_shell(active_tab, header_extra, content, message=None, error=None,
     <main class="main" id="main" tabindex="-1"
           data-section="{escape(active_tab or 'Home')}">
       <div class="main-inner{' wide' if wide else ''}">
+        {demo_banner}
         <header>
           <h1>{page_title}</h1>
           <div class="header-actions">{render_search_chip()}{header_extra}{render_new_menu()}</div>

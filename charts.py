@@ -85,6 +85,9 @@ def sparkline(values, labels=None, last_label=None, zero_baseline=False,
         return NO_DATA
 
     pad_l, pad_r, pad_t = 8, 64, 12
+    if last_label is not None:
+        # Room for the whole end label, so a long money figure is not cut off.
+        pad_r = max(pad_r, 16 + 8 * len(str(last_label)))
     plot_w = width - pad_l - pad_r
     plot_h = height - pad_t - 8
     axis_y = pad_t + plot_h
