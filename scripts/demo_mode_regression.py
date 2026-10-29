@@ -93,6 +93,10 @@ def run():
     failures += check("the demo ledger balances", debit == credit and debit > 0,
                       f"{debit} vs {credit}")
 
+    books = app.gather_reconciliation()
+    failures += check("the demo's bank balance reconciles with its books",
+                      books["flagged"] is False, str(books["residual"]))
+
     page = app.render_home_page()
     page = getattr(page, "body", page)
     page = page.decode() if isinstance(page, bytes) else page
