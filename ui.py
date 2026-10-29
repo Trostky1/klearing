@@ -647,6 +647,12 @@ STYLE = _ROOT_VARS + _FONT_FACES + """
   .stat-grid-lead .stat-value .dash-sub {
     font-size: var(--fs-sm); font-weight: 400; letter-spacing: 0; line-height: 1.4;
   }
+  /* On a phone the lead figures stack, one per row, at the smaller size.
+     The doubled class beats the generic .stat-grid phone rule further down. */
+  @media (max-width: 640px) {
+    .stat-grid.stat-grid-lead { grid-template-columns: minmax(0, 1fr); }
+    .stat-grid-lead .stat-value { font-size: var(--fs-xl); }
+  }
   .totals {
     display: flex; gap: var(--sp-6); flex-wrap: wrap;
     margin-bottom: var(--sp-1);
