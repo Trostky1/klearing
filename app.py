@@ -2798,7 +2798,7 @@ def dashboard_cash():
     # balance-minus-pending answers "what can I safely commit to spend
     # right now" without double-counting money that's already spoken
     # for. Only shown when it would actually differ from the balance.
-    pending_out = sum(i["amount"] for i in db.list_items(status="pending")
+    pending_out = sum(float(i["amount"]) for i in db.list_items(status="pending")
                       if i["direction"] == "expense")
     safe_to_spend = money(max(balance - pending_out, 0)) if pending_out > 0 else None
 
@@ -2810,7 +2810,7 @@ def dashboard_cash():
     spark_values, _spark_labels = weekly_net_series(8)
     trend_svg = ""
     if len(spark_values) >= 2:
-        running = Decimal(0)
+        running = 0.0
         cumulative = []
         for v in spark_values:
             running += v
@@ -3035,8 +3035,8 @@ def gather_reconciliation():
         (i for i in pending if i["direction"] == "expense"), key=sort_key)
     pending_in_items = sorted(
         (i for i in pending if i["direction"] != "expense"), key=sort_key)
-    pending_out = sum(i["amount"] for i in pending_out_items)
-    pending_in = sum(i["amount"] for i in pending_in_items)
+    pending_out = sum(float(i["amount"]) for i in pending_out_items)
+    pending_in = sum(float(i["amount"]) for i in pending_in_items)
 
     difference = books_balance - bank_balance
     # Pending expenses already left the bank but aren't approved into the

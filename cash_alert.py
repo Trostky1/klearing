@@ -121,7 +121,7 @@ def average_daily_burn():
         and item["status"] in ("approved", "pending")
         and item["date"] >= cutoff
     )
-    return total / BURN_WINDOW_DAYS
+    return float(total) / BURN_WINDOW_DAYS
 
 
 def evaluate():
