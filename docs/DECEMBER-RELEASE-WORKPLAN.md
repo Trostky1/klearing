@@ -83,7 +83,7 @@ wizard while leaving the importer unreachable.
 | Local regression checks | Passing | Ledger, bank sign 8/8, money cents 9/9, UI consolidation. New PR/push workflow added; hosted run pending. |
 | Tracked file-name exposure | Preliminary pass | No tracked `.env`, database, key, or log file found. Contents, history, packages still need review. |
 | Packaged launch and restore | Unverified | Run on clean Windows/macOS and older fictional backup. |
-| GitHub publication | Blocked | Destination is `Trostky1/klearing`; repository still needs creation. Local `gh` token is expired and connected GitHub app is authenticated as `bentrost-hash`. |
+| GitHub publication | Done | Published at `Trostky1/klearing`. |
 
 ## Portfolio evidence to capture during work
 

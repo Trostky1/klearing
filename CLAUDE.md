@@ -32,9 +32,6 @@ Klearing — Project Router & Rules
 
 Read this file first, every session, before exploring the codebase or writing code. It routes you to the right files and encodes rules learned the hard way across this project's history. When a task conflicts with a rule below, stop and ask rather than proceeding.
 
-Repo identity — confirm before anything else
-Correct repo: C:\Users\bentr\Documents\Klearing 2\repo
-Not C:\GoMode\clearing — a different, unrelated legacy codebase. This mixup has happened multiple times. Confirm you're in the right one before touching anything.
 What Klearing is
 
 Local-first Windows desktop business management app. Python/FastAPI backend, server-rendered HTML (no build step, no JS framework), packaged via PyInstaller, native window via pythonnet + WebView2. Runs at localhost:8642.
