@@ -1192,6 +1192,27 @@ STYLE = _ROOT_VARS + _FONT_FACES + """
   .step-title { font-size: var(--fs-md); font-weight: 600; }
   .step-detail { color: var(--muted); font-size: var(--fs-base); }
 
+  /* Pipeline board: one column per stage, scrolls sideways when wide. */
+  .board {
+    display: grid; grid-auto-flow: column; grid-auto-columns: minmax(220px, 1fr);
+    gap: var(--sp-3); overflow-x: auto; padding-bottom: var(--sp-2);
+  }
+  .board-col {
+    background: var(--surface); border: 1px solid var(--line);
+    border-radius: var(--radius-sm); padding: var(--sp-3); min-width: 0;
+    display: flex; flex-direction: column; gap: var(--sp-3);
+  }
+  .board-head { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-2); }
+  .board-head h2 { font-size: var(--fs-md); font-weight: 600; }
+  .board-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--sp-2); }
+  .board-card {
+    background: var(--raised); border: 1px solid var(--line);
+    border-radius: var(--radius-sm); padding: var(--sp-3);
+    display: flex; flex-direction: column; gap: var(--sp-1);
+  }
+  .board-card a { font-weight: 600; overflow-wrap: anywhere; }
+  .board-amount { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+
   /* Record detail: the work on the left, who it is about on the right. */
   .detail-grid {
     display: grid; grid-template-columns: minmax(0, 1fr) minmax(240px, 300px);

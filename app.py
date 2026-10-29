@@ -7916,11 +7916,13 @@ def _contacts_all_content():
 
 
 def _contacts_pipeline_content():
-    """Contacts grouped by stage.
+    """Contacts grouped by stage, one column per stage.
 
-    A list rather than a drag-and-drop board: the stages are a small
-    fixed set and the useful question is "who is in this group and what
-    are they worth", which a sortable table answers better than cards.
+    Read-only on purpose: a stage is a judgment, set on the contact's own
+    page through the existing form, so there is no drag and drop and no
+    new way to change one. Each card shows facts Klearing already holds
+    (orders and lifetime revenue) beside the stage rather than folded
+    into it.
     """
     summaries = crm.contact_summaries()
     if not summaries:
@@ -7931,41 +7933,36 @@ def _contacts_pipeline_content():
             "known and are shown beside them rather than folded into them.",
             action_href="/contacts?tab=all", action_label="All contacts")
 
-    groups = ""
+    columns = ""
     for key, label, rows in crm.pipeline_board(summaries):
         if rows:
-            body = '<table class="table-hover"><thead><tr>' \
-                   '<th data-sort="text">Name</th>' \
-                   '<th class="num" data-sort="num">Orders</th>' \
-                   '<th class="num" data-sort="num">Lifetime revenue</th>' \
-                   "</tr></thead><tbody>"
+            cards = ""
             for row in rows:
                 contact = row["contact"]
-                body += (
-                    f'<tr><td data-sort-value='
-                    f'"{escape(contact["display_name"], quote=True)}">'
+                orders = row["orders"]
+                cards += (
+                    f'<li class="board-card">'
                     f'<a href="/contacts/{contact["id"]}">'
-                    f'{escape(contact["display_name"])}</a></td>'
-                    f'<td class="num" data-sort-value="{row["orders"]}">'
-                    f'{row["orders"]}</td>'
-                    f'<td class="num" data-sort-value="{row["revenue_cents"]}">'
-                    f"{money(row['revenue'])}</td></tr>")
-            body += "</tbody></table>"
+                    f'{escape(contact["display_name"])}</a>'
+                    f'<div class="meta">{orders} order'
+                    f'{"" if orders == 1 else "s"}</div>'
+                    f'<div class="board-amount">{money(row["revenue"])}</div>'
+                    f"</li>")
         else:
-            body = ('<div class="none-note">Nobody here yet. Set a stage on '
-                    "a contact's own page to place them.</div>")
-        groups += f"""
-        <div class="section">
-          <div class="section-head"><h2>{escape(label)}</h2>
+            cards = ('<li class="none-note">Nobody here yet. Set a stage on '
+                     "a contact's own page to place them.</li>")
+        columns += f"""
+        <section class="board-col" aria-label="{escape(label, quote=True)}">
+          <div class="board-head"><h2>{escape(label)}</h2>
             <span class="tag">{len(rows)}</span></div>
-          {body}
-        </div>"""
+          <ul class="board-list">{cards}</ul>
+        </section>"""
 
     return f"""
     <div class="sub">Where each contact sits, as a judgment you made. Order
       counts and revenue are facts Klearing already holds &mdash; they sit
       beside the stage rather than deciding it.</div>
-    {groups}"""
+    <div class="board">{columns}</div>"""
 
 
 def _contact_add_form():
