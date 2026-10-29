@@ -631,16 +631,22 @@ STYLE = _ROOT_VARS + _FONT_FACES + """
      Vendors. The number leads at the display size the scale already owns,
      with its label stacked above it. Cells stay wide enough for a
      ten-character money figure, and a longer one wraps rather than clips. */
-  .stat-grid-lead { grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+  .stat-grid-lead {
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: var(--sp-3); background: transparent; border: 0; overflow: visible;
+  }
   .stat-grid-lead .stat-cell {
     flex-direction: column; justify-content: flex-start; gap: var(--sp-2);
     padding: var(--sp-4) var(--sp-5);
+    border: 1px solid var(--line); border-radius: var(--radius-sm);
   }
   .stat-grid-lead .stat-label { font-size: var(--fs-sm); font-weight: 600; }
   .stat-grid-lead .stat-value {
     font-size: var(--fs-2xl); min-width: 0; overflow-wrap: anywhere;
   }
-  .stat-grid-lead .stat-value .dash-sub { font-size: var(--fs-sm); font-weight: 400; }
+  .stat-grid-lead .stat-value .dash-sub {
+    font-size: var(--fs-sm); font-weight: 400; letter-spacing: 0; line-height: 1.4;
+  }
   .totals {
     display: flex; gap: var(--sp-6); flex-wrap: wrap;
     margin-bottom: var(--sp-1);

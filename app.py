@@ -7951,14 +7951,16 @@ def _contacts_pipeline_content():
             for row in rows:
                 contact = row["contact"]
                 orders = row["orders"]
+                facts = ""
+                if orders:
+                    facts = (f'<div class="meta">{orders} order'
+                             f'{"" if orders == 1 else "s"}</div>'
+                             f'<div class="board-amount">'
+                             f'{money(row["revenue"])}</div>')
                 cards += (
                     f'<li class="board-card">'
                     f'<a href="/contacts/{contact["id"]}">'
-                    f'{escape(contact["display_name"])}</a>'
-                    f'<div class="meta">{orders} order'
-                    f'{"" if orders == 1 else "s"}</div>'
-                    f'<div class="board-amount">{money(row["revenue"])}</div>'
-                    f"</li>")
+                    f'{escape(contact["display_name"])}</a>{facts}</li>')
         else:
             cards = ('<li class="none-note">Nobody here yet. Set a stage on '
                      "a contact's own page to place them.</li>")

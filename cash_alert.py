@@ -22,6 +22,7 @@ import json
 from datetime import date, timedelta
 
 import banks
+import paths
 import db
 import email_utils
 from config import APP_NAME, APP_URL
@@ -62,10 +63,21 @@ def get_config():
     }
 
 
+def _demo_cash_accounts():
+    """The demo has no bank, so its "bank" balance is the books' own cash."""
+    import ledger
+    balance = next((row["normal_balance"] for row in ledger.trial_balance()
+                    if row["code"] == "1010"), 0)
+    return [{"id": "demo-checking", "name": "Operating Checking",
+             "balance": float(balance)}]
+
+
 def matched_cash_accounts(cash_account_ids):
     """The selected business-cash accounts themselves
     ([{'id', 'name', 'balance'}]) — Reconcile's per-account breakdown
     needs the rows, not just their sum."""
+    if paths.is_demo():
+        return _demo_cash_accounts()
     adapter = banks.active_adapter()
     if adapter is None:
         raise RuntimeError("No bank is connected, so balances can't be read.")

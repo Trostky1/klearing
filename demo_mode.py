@@ -100,6 +100,13 @@ def seed():
     db.set_bank_ledger_account(
         "plaid", "demo-checking", ledger.account_by_code("1010")["id"])
 
+    db.set_setting("cash_accounts", '["demo-checking"]')
+    db.set_setting("alert_balance_threshold", "1000")
+    for code, category in (("6030", "other_expense"), ("6070", "rent_other"),
+                           ("6020", "commissions_and_fees")):
+        ledger.set_account_tax_category(
+            ledger.account_by_code(code)["id"], category)
+
     # --- Contacts and pipeline stages
     people = {}
     for name, stage in [("Acme Corp", "key_account"), ("Bolt Supply", "customer"),
@@ -151,9 +158,9 @@ def seed():
         account, name = app.resolve_submitted_category(code)
         app._post_one_approved(item, name, account, "", None)
 
-    approved("Client deposit, Gable Goods", 2800.00, "income", "4100", 52, "in1")
-    approved("Client deposit, Bolt Supply", 1500.00, "income", "4100", 24, "in2")
-    approved("Client deposit, Cedar Studio", 1750.00, "income", "4100", 9, "in3")
+    approved("Gable Goods, workshop fee", 2800.00, "income", "4100", 52, "in1")
+    approved("Stripe payout, print shop", 1275.00, "income", "4000", 24, "in2")
+    approved("Stripe payout, print shop", 940.00, "income", "4000", 9, "in3")
     approved("Studio rent", 1200.00, "expense", "6070", 55, "rent1")
     approved("Studio rent", 1200.00, "expense", "6070", 25, "rent2")
     approved("Adobe", 54.99, "expense", "6030", 50, "adobe1")
