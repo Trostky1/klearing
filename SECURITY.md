@@ -44,16 +44,13 @@ We run a review modeled on the security checklist from the
 - Output: user text is escaped before it goes into a page.
 - Commands: no shell string is built from user input.
 - Access: every page except the lock page and a local health check requires the app password when one is set.
-- Dependencies: `pip-audit` runs weekly and on every pull request.
+- Dependencies: `pip-audit` runs weekly and on every pull request, and fails the build on a known vulnerability.
 - Code: `bandit` runs on every pull request and fails the build on any high-severity finding.
 
 The workflow is in [.github/workflows/security.yml](.github/workflows/security.yml).
 
 ## Known limits
 
-- **Dependency advisories.** `pip-audit` reports advisories for `cryptography`
-  in the range pinned by `requirements.txt`. Moving to a patched release is a
-  tracked decision, because it changes a pinned dependency.
 - **Content security policy.** The policy forbids framing, plugins, and
   `<base>` tricks. It does not yet restrict scripts, because pages still use
   inline scripts and load Plaid Link from its CDN.

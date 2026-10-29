@@ -28,8 +28,6 @@ jobs:
       - name: bandit, medium severity (report only)
         run: bandit -q -r . -x ./venv,./.venv,./scripts,./build,./dist,./.worktrees -ll
         continue-on-error: true
-      # Known-vulnerable dependencies. Report only until the cryptography
-      # version range in requirements.txt is decided.
-      - name: pip-audit (report only)
+      # Fails the build on a known-vulnerable dependency.
+      - name: pip-audit
         run: pip-audit -r requirements.txt
-        continue-on-error: true
