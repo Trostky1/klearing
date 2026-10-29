@@ -335,7 +335,6 @@ STYLE = _ROOT_VARS + _FONT_FACES + """
   .totals .label, .dash-kicker, .chart-title, .fu-field label, h3, th,
   .dash-mini-label, .dev-tools .dev-label, .ai-insight-kicker {
     font-size: var(--fs-xs); font-weight: 600; color: var(--faint);
-    text-transform: uppercase; letter-spacing: 0.04em;
   }
   /* Deliberately smaller than --fs-xs (the shared eyebrow rule above) —
      a documented exception for this denser 3-up dash-card context, not
@@ -784,8 +783,7 @@ STYLE = _ROOT_VARS + _FONT_FACES + """
      context. Equal weight everywhere is what caused the problem. */
   .today-card.is-primary { border-color: var(--brand-line); background: var(--brand-soft); }
   .today-card .kicker, .source-briefing-kicker {
-    font-size: var(--fs-2xs); font-weight: 600; letter-spacing: 0.08em;
-    text-transform: uppercase; color: var(--faint);
+    font-size: var(--fs-xs); font-weight: 600; color: var(--faint);
   }
   .today-card .figure {
     font-size: var(--fs-xl); font-weight: 600; letter-spacing: -0.03em;
@@ -850,8 +848,7 @@ STYLE = _ROOT_VARS + _FONT_FACES + """
   }
   .source-signal.urgent:hover { border-color: var(--warn); background: var(--warn-soft); }
   .source-signal-tier {
-    color: var(--muted); font-size: var(--fs-2xs); font-weight: 600;
-    letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--muted); font-size: var(--fs-xs); font-weight: 600;
   }
   .source-signal.urgent .source-signal-tier { color: var(--warn); }
   .source-signal-copy { font-size: var(--fs-md); line-height: 1.45; }
@@ -922,8 +919,7 @@ STYLE = _ROOT_VARS + _FONT_FACES + """
   }
   .insight-metric:hover { background: var(--hover-fill); }
   .insight-metric-source {
-    color: var(--faint); font-size: var(--fs-2xs); font-weight: 600;
-    letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--faint); font-size: var(--fs-xs); font-weight: 600;
   }
   .insight-metric-label {
     grid-column: 1 / -1; min-width: 0; overflow-wrap: anywhere;
@@ -998,8 +994,7 @@ STYLE = _ROOT_VARS + _FONT_FACES + """
   .drawer-field { margin-bottom: var(--sp-4); }
   .drawer-field > label {
     display: block; margin-bottom: var(--sp-2);
-    font-size: var(--fs-xs); font-weight: 600; letter-spacing: 0.06em;
-    text-transform: uppercase; color: var(--faint);
+    font-size: var(--fs-xs); font-weight: 600; color: var(--faint);
   }
   .drawer-field select, .drawer-field input[type="text"] { width: 100%; }
 
@@ -1292,8 +1287,7 @@ STYLE = _ROOT_VARS + _FONT_FACES + """
   .palette-list { max-height: 46vh; overflow-y: auto; padding: var(--sp-2); }
   .palette-group {
     padding: var(--sp-3) var(--sp-3) var(--sp-1);
-    font-size: var(--fs-2xs); font-weight: 600; letter-spacing: 0.08em;
-    text-transform: uppercase; color: var(--faint);
+    font-size: var(--fs-xs); font-weight: 600; color: var(--faint);
   }
   .palette-item {
     display: flex; align-items: center; gap: var(--sp-3);
