@@ -63,6 +63,7 @@ import ledger
 import ledger_sync
 import demo_mode
 import local_host
+import request_guard
 import ollama_client
 import paths
 import plaid_client
@@ -262,6 +263,7 @@ async def gatekeeper(request: Request, call_next):
 # Register after the route-level gatekeeper decorator: FastAPI prepends each
 # middleware registration, so this makes the exact Host check the outermost
 # HTTP boundary and prevents redirects/lock pages from bypassing it.
+app.add_middleware(request_guard.RequestGuardMiddleware)
 app.add_middleware(local_host.LocalHostMiddleware)
 
 

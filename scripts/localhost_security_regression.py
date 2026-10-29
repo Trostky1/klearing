@@ -60,6 +60,22 @@ def request(*hosts):
     return response.status
 
 
+def browser_request(method, path, **headers):
+    """One request with the given extra headers; returns (status, headers)."""
+    connection = http.client.HTTPConnection("127.0.0.1", PORT, timeout=5)
+    connection.putrequest(method, path, skip_host=True)
+    connection.putheader("Host", f"localhost:{PORT}")
+    connection.putheader("Content-Length", "0")
+    for name, value in headers.items():
+        connection.putheader(name.replace("_", "-"), value)
+    connection.endheaders()
+    response = connection.getresponse()
+    response.read()
+    result = (response.status, {k.lower(): v for k, v in response.getheaders()})
+    connection.close()
+    return result
+
+
 def main_regression():
     failures = 0
     failures += check("both server modes bind only loopback",
@@ -88,6 +104,50 @@ def main_regression():
                           request("localhost:9999") == 400)
         failures += check("duplicate Host headers are rejected",
                           request(f"localhost:{PORT}", "evil.test") == 400)
+
+        # Cross-site request guard: a page on another site can make a browser
+        # POST to localhost, and the browser labels that request.
+        evil = browser_request("POST", "/review/deny", Origin="http://evil.test")[0]
+        failures += check("a POST with a foreign Origin is refused", evil == 403,
+                          str(evil))
+        cross = browser_request("POST", "/review/deny",
+                                Sec_Fetch_Site="cross-site")[0]
+        failures += check("a POST marked cross-site by the browser is refused",
+                          cross == 403, str(cross))
+        same_site = browser_request("POST", "/review/deny",
+                                    Sec_Fetch_Site="same-site",
+                                    Origin="http://localhost:9999")[0]
+        failures += check("a POST from another port on localhost is refused",
+                          same_site == 403, str(same_site))
+        # A real browser sends Origin: null on a same-origin form post when the
+        # page's referrer policy is no-referrer, so Sec-Fetch-Site decides.
+        form = browser_request("POST", "/review/deny", Origin="null",
+                               Sec_Fetch_Site="same-origin")[0]
+        failures += check("a same-origin form post with Origin null is not refused",
+                          form != 403, str(form))
+        null_only = browser_request("POST", "/review/deny", Origin="null")[0]
+        failures += check("Origin null with no Sec-Fetch-Site is refused",
+                          null_only == 403, str(null_only))
+        for origin in (f"http://localhost:{PORT}", f"http://127.0.0.1:{PORT}"):
+            own = browser_request("POST", "/review/deny", Origin=origin)[0]
+            failures += check(f"a POST from Klearing's own origin {origin} is not refused",
+                              own != 403, str(own))
+        bare = browser_request("POST", "/review/deny")[0]
+        failures += check("a POST with no Origin (script, curl) is not refused",
+                          bare != 403, str(bare))
+        evil_get = browser_request("GET", "/", Origin="http://evil.test")[0]
+        failures += check("a GET is not blocked by the cross-site guard",
+                          evil_get != 403, str(evil_get))
+        refused = browser_request("POST", "/review/deny", Origin="http://evil.test")[1]
+        failures += check("a refused request still carries security headers",
+                          refused.get("x-frame-options") == "DENY")
+        _, headers = browser_request("GET", "/")
+        failures += check("pages carry nosniff, no-frame, and same-origin referrer headers",
+                          headers.get("x-content-type-options") == "nosniff"
+                          and headers.get("x-frame-options") == "DENY"
+                          and headers.get("referrer-policy") == "same-origin"
+                          and "frame-ancestors 'none'" in headers.get(
+                              "content-security-policy", ""))
     finally:
         server.should_exit = True
         thread.join(timeout=10)
