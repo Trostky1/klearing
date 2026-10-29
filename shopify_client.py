@@ -91,10 +91,19 @@ def get_token():
 
 
 def get_store():
+    if paths.is_demo():
+        return "summit-edge-demo.myshopify.com"
     return (db.get_setting(STORE_KEY) or "").strip().lower()
 
 
+def _refuse_in_demo():
+    if paths.is_demo():
+        raise RuntimeError("The demo is not connected to Shopify.")
+
+
 def is_configured():
+    if paths.is_demo():
+        return True
     try:
         return bool(get_token() and get_store())
     except Exception:
@@ -446,6 +455,7 @@ def _wait_for_slot():
 
 
 def _get(token, store, path, params=None):
+    _refuse_in_demo()
     for attempt in range(MAX_RATE_LIMIT_RETRIES + 1):
         _wait_for_slot()
         response = requests.get(_base(store) + path, headers={
@@ -473,6 +483,7 @@ def _next_link(response):
 
 
 def _list_all(token, store, path, key, params=None):
+    _refuse_in_demo()
     rows, url, first = [], path, True
     while url:
         if first:

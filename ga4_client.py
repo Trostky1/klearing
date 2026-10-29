@@ -30,6 +30,7 @@ import requests
 
 import connectivity
 import db
+import paths
 import secrets_store
 
 SERVICE_ACCOUNT_SECRET = "ga4.service_account_json"
@@ -57,6 +58,8 @@ class GA4ConfigError(RuntimeError):
 
 
 def is_configured():
+    if paths.is_demo():
+        return True
     db.init_db()
     return (secrets_store.has_secret(SERVICE_ACCOUNT_SECRET)
             and bool(db.get_setting(PROPERTY_ID_KEY)))
@@ -115,6 +118,8 @@ def _b64url(data):
 
 def _fetch_access_token(info):
     """Exchange a signed JWT for a short-lived access token."""
+    if paths.is_demo():
+        raise RuntimeError("The demo is not connected to Google Analytics.")
     from cryptography.hazmat.primitives import hashes, serialization
     from cryptography.hazmat.primitives.asymmetric import padding
 

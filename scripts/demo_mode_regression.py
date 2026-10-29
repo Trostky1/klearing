@@ -80,13 +80,13 @@ def run():
                       and paths.db_path() != real_db)
     failures += check("the demo counts as finished setup",
                       db.get_setting("setup_complete") == "1")
-    failures += check("the demo has seven contacts", len(db.list_contacts()) == 7)
+    failures += check("the demo has a full set of contacts", len(db.list_contacts()) == 15)
     invoices = db.list_invoices()
     failures += check("the demo has invoices", len(invoices) == 5, str(len(invoices)))
     failures += check("the demo has transactions waiting for review",
-                      len(db.list_items(status="pending")) == 6)
+                      len(db.list_items(status="pending")) == 8)
     failures += check("the demo has approved transactions",
-                      len(db.list_items(status="approved")) >= 10)
+                      len(db.list_items(status="approved")) >= 40)
     rows = ledger.trial_balance()
     debit = sum((Decimal(str(r["debit_total"])) for r in rows), Decimal("0"))
     credit = sum((Decimal(str(r["credit_total"])) for r in rows), Decimal("0"))
@@ -122,7 +122,7 @@ def run():
     demo_mode.activate()
     names = [c["display_name"] for c in db.list_contacts()]
     failures += check("each visit starts a fresh demo",
-                      "Added during the demo" not in names and len(names) == 7)
+                      "Added during the demo" not in names and len(names) == 15)
     demo_mode.deactivate()
 
     # --- Over HTTP

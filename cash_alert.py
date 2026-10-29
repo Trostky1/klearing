@@ -69,9 +69,8 @@ def _demo_cash_accounts():
     A real bank already holds the transactions still waiting in Review, so
     the balance is the books' cash, less waiting expenses, plus waiting
     income. That is what makes Bank vs books reconcile in the demo."""
-    import ledger
-    books = next((row["normal_balance"] for row in ledger.trial_balance()
-                  if row["code"] == "1010"), 0)
+    import accountant_export
+    books = accountant_export.cash_balance(date.today().isoformat())
     waiting_out = sum(float(i["amount"]) for i in db.list_items(status="pending")
                       if i["direction"] == "expense")
     waiting_in = sum(float(i["amount"]) for i in db.list_items(status="pending")
