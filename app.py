@@ -4149,6 +4149,16 @@ FUNNEL_STAGES = [
 ]
 
 
+def _funnel_stages(snapshot):
+    """The funnel follows the events the owner chose to track in Settings,
+    in order. A snapshot without them keeps the original three stages."""
+    events = [e for e in snapshot.get("conversion_events", [])
+              if isinstance(e, str)]
+    if len(events) < 2:
+        return FUNNEL_STAGES
+    return [(event.replace("_", " ").capitalize(), event) for event in events]
+
+
 def traffic_history(snapshots, metric="sessions"):
     """(values, labels) of the trailing-7-day `metric` across the stored
     daily snapshots, oldest first — the trend the sparkline plots. Reads
@@ -4251,16 +4261,17 @@ def _render_marketing_insights_page(snapshot_row, message=None, error=None,
         aria="Top pages by views")
 
     # Landing funnel (30-day counts) as a shrinking-width funnel.
+    stages = _funnel_stages(snapshot)
     funnel_html = charts.funnel_chart(
         [(label, month["events"]["current"].get(key, 0))
-         for label, key in FUNNEL_STAGES],
-        aria="Quiz to waitlist funnel")
+         for label, key in stages],
+        aria="Conversion funnel")
 
     # End-to-end headline under the funnel: last stage as a share of the
     # first. Ratio wording, not cohort wording — the last stage can fire
     # from entry points outside the funnel (see charts.funnel_chart).
-    first_label, first_key = FUNNEL_STAGES[0]
-    last_label, last_key = FUNNEL_STAGES[-1]
+    first_label, first_key = stages[0]
+    last_label, last_key = stages[-1]
     first_n = month["events"]["current"].get(first_key, 0)
     last_n = month["events"]["current"].get(last_key, 0)
     funnel_note = ""
@@ -4295,7 +4306,7 @@ def _render_marketing_insights_page(snapshot_row, message=None, error=None,
       plain thresholds.</div>
     {flags_html}
     <div class="section">
-      <div class="section-head"><h2>Quiz to waitlist funnel</h2>
+      <div class="section-head"><h2>Conversion funnel</h2>
         <span class="tag">last 30 days</span></div>
       {funnel_html}
       {funnel_note}

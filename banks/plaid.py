@@ -36,6 +36,7 @@ import requests
 
 import banks
 import connectivity
+import paths
 
 # Plaid retired the old "development" environment; sandbox (free test
 # banks) and production (real banks, what the Trial plan uses) remain.
@@ -157,6 +158,8 @@ class PlaidAdapter(banks.BankAdapter):
         """The pasted keys plus every connected bank's access token. None
         only when the keys themselves are missing (access_tokens may be
         empty — that just means no bank is connected yet)."""
+        if paths.is_demo():
+            return {"environment": "sandbox", "access_tokens": ["demo-token"]}
         base = super().stored_credentials()
         if base is None:
             return None
@@ -178,6 +181,8 @@ class PlaidAdapter(banks.BankAdapter):
     def _request(self, credentials, path, extra=None):
         """POST to Plaid with client_id/secret injected. Returns parsed
         JSON or raises PlaidHTTPError."""
+        if paths.is_demo():
+            raise RuntimeError("The demo is not connected to a bank.")
         body = {
             "client_id": credentials["client_id"],
             "secret": credentials["secret"],
@@ -280,6 +285,9 @@ class PlaidAdapter(banks.BankAdapter):
     def list_accounts(self, credentials):
         """Every account across every connected bank, as
         [{'id', 'name', 'balance'}]."""
+        if paths.is_demo():
+            import cash_alert
+            return cash_alert._demo_cash_accounts()
         accounts = []
         for access_token in credentials.get("access_tokens") or []:
             data = self._request(credentials, "/accounts/get",

@@ -1119,14 +1119,13 @@ STYLE = _ROOT_VARS + _FONT_FACES + """
      facts, not a generated opinion. */
   .briefing { margin-bottom: var(--sp-6); }
   .briefing-lead {
-    font-family: var(--font-doc); font-size: var(--fs-3xl);
-    font-weight: 400; line-height: 1.02; letter-spacing: -0.02em;
-    color: var(--ink); max-width: 20ch;
+    font-family: var(--font-ui); font-size: var(--fs-2xl);
+    font-weight: 600; line-height: 1.1; letter-spacing: -0.03em;
+    color: var(--ink); max-width: 24ch; text-wrap: balance;
   }
-  .briefing-lead .quiet {
-    font-weight: 600; letter-spacing: -0.02em;
-    color: color-mix(in oklch, var(--brand-strong) 60%, var(--faint));
-  }
+  /* The second sentence is quieter by tone only: one face, one weight,
+     no second color. */
+  .briefing-lead .quiet { color: var(--muted); }
   .briefing-points {
     list-style: none; margin-top: var(--sp-5);
     display: grid; gap: var(--sp-3); max-width: 62ch;
