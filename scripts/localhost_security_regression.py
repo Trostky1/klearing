@@ -114,6 +114,20 @@ def main_regression():
                                 Sec_Fetch_Site="cross-site")[0]
         failures += check("a POST marked cross-site by the browser is refused",
                           cross == 403, str(cross))
+        same_site = browser_request("POST", "/review/deny",
+                                    Sec_Fetch_Site="same-site",
+                                    Origin="http://localhost:9999")[0]
+        failures += check("a POST from another port on localhost is refused",
+                          same_site == 403, str(same_site))
+        # A real browser sends Origin: null on a same-origin form post when the
+        # page's referrer policy is no-referrer, so Sec-Fetch-Site decides.
+        form = browser_request("POST", "/review/deny", Origin="null",
+                               Sec_Fetch_Site="same-origin")[0]
+        failures += check("a same-origin form post with Origin null is not refused",
+                          form != 403, str(form))
+        null_only = browser_request("POST", "/review/deny", Origin="null")[0]
+        failures += check("Origin null with no Sec-Fetch-Site is refused",
+                          null_only == 403, str(null_only))
         for origin in (f"http://localhost:{PORT}", f"http://127.0.0.1:{PORT}"):
             own = browser_request("POST", "/review/deny", Origin=origin)[0]
             failures += check(f"a POST from Klearing's own origin {origin} is not refused",
@@ -128,10 +142,10 @@ def main_regression():
         failures += check("a refused request still carries security headers",
                           refused.get("x-frame-options") == "DENY")
         _, headers = browser_request("GET", "/")
-        failures += check("pages carry nosniff, no-frame, and no-referrer headers",
+        failures += check("pages carry nosniff, no-frame, and same-origin referrer headers",
                           headers.get("x-content-type-options") == "nosniff"
                           and headers.get("x-frame-options") == "DENY"
-                          and headers.get("referrer-policy") == "no-referrer"
+                          and headers.get("referrer-policy") == "same-origin"
                           and "frame-ancestors 'none'" in headers.get(
                               "content-security-policy", ""))
     finally:

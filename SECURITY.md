@@ -15,8 +15,8 @@ Please do not post secrets, bank tokens, or real financial data in a public issu
 |---|---|
 | Loopback only | The server listens on `127.0.0.1`. Other computers cannot reach it. |
 | Exact Host check | A request must name Klearing's own address and port. This blocks DNS rebinding. |
-| Cross-site guard | A form on another website cannot make your browser change Klearing data. A POST, PUT, PATCH, or DELETE with a foreign `Origin`, or marked `cross-site` by the browser, gets a 403. |
-| Security headers | Every page sends `X-Content-Type-Options`, `X-Frame-Options: DENY`, `Referrer-Policy: no-referrer`, a `Permissions-Policy`, and a content security policy that forbids framing. |
+| Cross-site guard | A form on another website cannot make your browser change Klearing data. A POST, PUT, PATCH, or DELETE that the browser does not mark `same-origin` gets a 403. Older browsers fall back to the `Origin` header. |
+| Security headers | Every page sends `X-Content-Type-Options`, `X-Frame-Options: DENY`, `Referrer-Policy: same-origin`, a `Permissions-Policy`, and a content security policy that forbids framing. |
 | App password | Locks every page. Failed attempts trigger a timed lockout. |
 | Encrypted credentials | Keys sit encrypted in the local database. The encryption key lives in your operating system credential store. |
 | Read-only bank access | Klearing cannot move money. |

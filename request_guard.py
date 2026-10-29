@@ -31,7 +31,7 @@ CONTENT_SECURITY_POLICY = (
 SECURITY_HEADERS = (
     (b"x-content-type-options", b"nosniff"),
     (b"x-frame-options", b"DENY"),
-    (b"referrer-policy", b"no-referrer"),
+    (b"referrer-policy", b"same-origin"),
     (b"permissions-policy", b"camera=(), microphone=(), geolocation=()"),
     (b"content-security-policy", CONTENT_SECURITY_POLICY.encode("latin-1")),
 )
@@ -45,12 +45,21 @@ def _header(scope, name):
 
 
 def is_cross_site(scope):
-    """True when a browser says this request came from another site."""
-    origin = _header(scope, b"origin")
-    if origin is not None and origin.lower() not in ALLOWED_ORIGINS:
-        return True
+    """True when a browser says this request came from somewhere else.
+
+    Sec-Fetch-Site is set by the browser and a web page cannot change it, so
+    it decides when it is present: only "same-origin" (and "none", a request
+    the user typed) pass. A page on another port of localhost is "same-site",
+    not "same-origin", and is refused. Older browsers that do not send it fall
+    back to the Origin header. Origin alone is not enough, because a browser
+    sends "Origin: null" on a same-origin form post when the page's referrer
+    policy is "no-referrer".
+    """
     fetch_site = _header(scope, b"sec-fetch-site")
-    return fetch_site is not None and fetch_site.lower() == "cross-site"
+    if fetch_site is not None:
+        return fetch_site.lower() not in ("same-origin", "none")
+    origin = _header(scope, b"origin")
+    return origin is not None and origin.lower() not in ALLOWED_ORIGINS
 
 
 class RequestGuardMiddleware:
