@@ -579,6 +579,29 @@ def _review_detail_panel(item, categories, show_auto_suggestions):
     </div>"""
 
 
+def _review_summary_strip(items):
+    """How much is waiting, and which way the money moves.
+
+    Transfers stay out of money in and money out, as on the Summary page.
+    Sums as Decimal: pending amounts arrive as Decimal, and summarize()
+    mixes them with a float zero.
+    """
+    def total(direction):
+        return sum((Decimal(str(item["amount"])) for item in items
+                    if item["direction"] == direction), Decimal("0"))
+
+    totals = {"total_in": total("income"), "total_out": total("expense")}
+    transfers = sum(1 for item in items if item["direction"] == "transfer")
+    note = (f"{transfers} transfer{'s' if transfers != 1 else ''} not counted "
+            "in money in or out" if transfers else None)
+    return f"""
+    <div class="stat-grid mb-4">
+      {ui.stat("Waiting", str(len(items)), sub=note)}
+      {ui.stat("Money in", money(totals["total_in"]), tone="in")}
+      {ui.stat("Money out", money(totals["total_out"]), tone="out")}
+    </div>"""
+
+
 def _review_transactions_content(items, categories=None, dup_item_id=None,
                                  dup_category=None,
                                  show_auto_suggestions=True,
@@ -663,6 +686,7 @@ def _review_transactions_content(items, categories=None, dup_item_id=None,
     open_attr = f' data-open-detail="#detail-{open_item_id}"' if open_item_id else ""
 
     return f"""
+    {_review_summary_strip(items)}
     <div class="sub">Check each transaction, then record it in your
       accounting or dismiss it. Nothing is recorded without your say-so.</div>
     <table class="table-hover" data-select="#review-bulk"
@@ -3627,7 +3651,18 @@ def render_vendors_page(rows, threshold_pct, subscriptions=None,
               <td class="num">{lifetime_cell}</td>
               <td class="num">{row["count"]}</td>
             </tr>"""
+        spent_now = sum(row["this_month"] for row in rows)
+        spent_before = sum(row["last_month"] for row in rows)
+        jumps = sum(1 for row in rows if row["jump_pct"] is not None)
+        vendor_strip = f"""
+        <div class="stat-grid mb-4">
+          {ui.stat("Spent this month", money(spent_now))}
+          {ui.stat("Spent last month", money(spent_before))}
+          {ui.stat("Vendors with a jump", str(jumps),
+                   tone="out" if jumps else None)}
+        </div>"""
         body = f"""
+        {vendor_strip}
         <div class="section">
           <div class="section-head"><h2>This month by vendor</h2>
             <span class="tag">largest first</span></div>
