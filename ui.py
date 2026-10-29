@@ -1157,6 +1157,7 @@ STYLE = _ROOT_VARS + _FONT_FACES + """
     color: var(--brand-ink); font-size: var(--fs-2xs); font-weight: 600;
     font-variant-numeric: tabular-nums;
   }
+  .meta > span + span { margin-left: var(--sp-2); }
   /* Invoice progress: Create, Send, Get paid. Read-only status. */
   .progress-steps {
     list-style: none; margin: 0 0 var(--gap-section); padding: 0;
@@ -3093,9 +3094,9 @@ def render_shell(active_tab, header_extra, content, message=None, error=None,
         banner = f'<div class="banner">{escape(message)}</div>'
 
     script = f"<script>{TEST_JS}{extra_js}</script>" if (extra_js or "wireTest" in content) else ""
-    footer = (f'<footer>Local-first &mdash; your data stays on this machine. '
-              f'External integrations are opt-in. &middot; data in '
-              f'{escape(str(paths.data_dir()))}</footer>')
+    footer = (f'<footer title="Data folder: '
+              f'{escape(str(paths.data_dir()), quote=True)}">'
+              'Your data stays on this machine.</footer>')
 
     if not show_nav:
         # Unlock / setup: no sidebar, centered single column (unchanged).
