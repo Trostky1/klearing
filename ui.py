@@ -1163,6 +1163,46 @@ STYLE = _ROOT_VARS + _FONT_FACES + """
     color: var(--brand-ink); font-size: var(--fs-2xs); font-weight: 600;
     font-variant-numeric: tabular-nums;
   }
+  /* Invoice progress: Create, Send, Get paid. Read-only status. */
+  .progress-steps {
+    list-style: none; margin: 0 0 var(--gap-section); padding: 0;
+    display: grid; gap: var(--sp-3);
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  @media (max-width: 900px) {
+    .progress-steps { grid-template-columns: minmax(0, 1fr); }
+  }
+  .progress-step {
+    display: grid; grid-template-columns: 28px minmax(0, 1fr);
+    gap: var(--sp-3); align-items: start; padding: var(--pad-compact);
+    background: var(--surface); border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+  }
+  .step-mark {
+    width: 28px; height: 28px; border-radius: 999px; display: grid;
+    place-items: center; border: 1px solid var(--line-strong);
+    color: var(--muted); font-size: var(--fs-sm); font-weight: 600;
+    font-variant-numeric: tabular-nums;
+  }
+  .progress-step.done .step-mark {
+    background: var(--brand-soft); border-color: var(--brand-line);
+    color: var(--brand-ink);
+  }
+  .progress-step[aria-current="step"] .step-mark { border-color: var(--ink); color: var(--ink); }
+  .step-title { font-size: var(--fs-md); font-weight: 600; }
+  .step-detail { color: var(--muted); font-size: var(--fs-base); }
+
+  /* Record detail: the work on the left, who it is about on the right. */
+  .detail-grid {
+    display: grid; grid-template-columns: minmax(0, 1fr) minmax(240px, 300px);
+    gap: var(--gap-section); align-items: start;
+  }
+  .detail-main, .detail-side { min-width: 0; }
+  .detail-tags { display: flex; flex-wrap: wrap; gap: var(--sp-2); }
+  @media (max-width: 900px) {
+    .detail-grid { grid-template-columns: minmax(0, 1fr); }
+  }
+
   /* The header "New" menu: one native <details>, no script needed to open
      it. table.js only closes it on an outside click or Escape. */
   .new-menu { position: relative; }

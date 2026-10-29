@@ -6529,9 +6529,42 @@ def render_invoices_page(tab="all", message=None, error=None):
       <div class="header-actions">
         <a class="btn-link primary" href="/invoices/new">New invoice</a>
       </div>"""
-    content = f"{_invoice_nav(active)}{body}"
+    strip = (_invoice_summary_strip(views)
+             if views and active != "recurring" else "")
+    content = f"{strip}{_invoice_nav(active)}{body}"
     return render_shell("Invoices", header_extra, content, message, error,
                         wide=True)
+
+
+def _invoice_summary_strip(views, today=None):
+    """What is owed, at a glance: overdue, due soon, and everything open.
+
+    Sums the per-invoice balances already computed in cents by
+    _invoice_view; it derives nothing new about money. Paid, draft, void
+    and written-off invoices owe nothing and are left out.
+    """
+    today_date = date.fromisoformat(today or date.today().isoformat())
+    overdue = due_soon = outstanding = 0
+    for view in views:
+        if view["status"] not in ("sent", "partial", "overdue"):
+            continue
+        outstanding += view["balance"]
+        if view["status"] == "overdue":
+            overdue += view["balance"]
+            continue
+        try:
+            due = date.fromisoformat(view["invoice"]["due_date"])
+        except (TypeError, ValueError):
+            continue
+        if 0 <= (due - today_date).days <= 30:
+            due_soon += view["balance"]
+    cell = lambda cents: ui.money(Decimal(cents) / 100)
+    return f"""
+    <div class="stat-grid mb-4">
+      {ui.stat("Overdue", cell(overdue), tone="out" if overdue else None)}
+      {ui.stat("Due in the next 30 days", cell(due_soon))}
+      {ui.stat("Outstanding", cell(outstanding))}
+    </div>"""
 
 
 def _recurring_templates_content():
@@ -6991,12 +7024,71 @@ def render_invoice_page(invoice_id, message=None, error=None):
         <a class="btn-link" href="/invoices">All invoices</a>
       </div>"""
     content = (f'<div class="sub">{escape(number)}</div>'
+               + _invoice_overview(view)
+               + _invoice_steps(view)
                + _invoice_payment_link_block(view)
                + _invoice_editor(view, contacts)
                + _invoice_money_actions(view)
                + _invoice_activity(invoice_id))
     return render_shell("Invoices", header_extra, content, message, error,
                         wide=True)
+
+
+def _invoice_overview(view):
+    """Customer, total, outstanding and due date, above the editor."""
+    invoice = view["invoice"]
+    contact = db.get_contact(invoice["contact_id"]) or {}
+    cell = lambda cents: ui.money(Decimal(cents) / 100)
+    return f"""
+    <div class="stat-grid mb-4">
+      {ui.stat("Customer", escape(contact.get("display_name") or "Not set"))}
+      {ui.stat("Total", cell(view["totals"]["gross"]))}
+      {ui.stat("Outstanding", cell(view["balance"]))}
+      {ui.stat("Due", escape(invoice["due_date"] or "Not set"))}
+    </div>"""
+
+
+def _invoice_steps(view):
+    """Create, send, get paid: where this invoice is in its life.
+
+    Read-only. Every control stays where it already was (the editor and
+    the money actions below); this only says which step is current.
+    """
+    invoice = view["invoice"]
+    status = view["status"]
+    sent = bool(invoice["sent_at"])
+    if status == "draft":
+        create_note = "Draft. Not issued yet."
+    else:
+        create_note = f"Issued {escape(invoice['issue_date'] or '')}."
+    if sent:
+        send_note = f"Sent {escape(str(invoice['sent_at'])[:10])}."
+    else:
+        send_note = "Not sent yet."
+    if status == "paid":
+        paid_note = "Paid in full."
+    elif status in ("void", "written_off"):
+        paid_note = f"{escape(view['label'])}. Nothing is owed."
+    else:
+        paid_note = (f"{ui.money(Decimal(view['balance']) / 100)} outstanding, "
+                     f"due {escape(invoice['due_date'] or 'on no date')}.")
+    steps = [("Create", create_note, True),
+             ("Send", send_note, sent),
+             ("Get paid", paid_note, status in ("paid", "void", "written_off"))]
+    current = next((i for i, step in enumerate(steps) if not step[2]), None)
+    check = ('<svg viewBox="0 0 20 20" aria-hidden="true" width="14" '
+             'height="14"><path d="M4 10.5l4 4 8-9" fill="none" '
+             'stroke="currentColor" stroke-width="2" stroke-linecap="round" '
+             'stroke-linejoin="round"/></svg>')
+    items = ""
+    for index, (title, note, done) in enumerate(steps):
+        attrs = ' aria-current="step"' if index == current else ""
+        cls = "progress-step done" if done else "progress-step"
+        mark = check if done else str(index + 1)
+        items += (f'<li class="{cls}"{attrs}><span class="step-mark">{mark}</span>'
+                  f'<div><div class="step-title">{title}</div>'
+                  f'<div class="step-detail">{note}</div></div></li>')
+    return f'<ol class="progress-steps" aria-label="Invoice progress">{items}</ol>'
 
 
 def _invoice_payment_link_block(view):
@@ -7996,9 +8088,10 @@ def render_contact_detail(contact_id, message=None, error=None):
             f"{alias_rows}</tbody></table>",
             note="used to match bank descriptors back to this contact")
 
+    about_tags = (" ".join(identity) if identity
+                  else '<span class="hint">No email or phone saved.</span>')
     content = f"""
     <p class="hint"><a href="/contacts">&larr; All contacts</a></p>
-    <div class="sub">{" ".join(identity)}</div>
     <div class="section">
       <div class="section-head"><h2>{escape(contact["display_name"])}</h2>
         {_stage_pill(graph["stage"])}</div>
@@ -8008,19 +8101,29 @@ def render_contact_detail(contact_id, message=None, error=None):
         {margin_stat}
         {ui.stat("Invoiced outstanding", money(graph["invoiced_outstanding"]))}
       </div>
-      {alias_block}
     </div>
-    {_contact_stage_form(contact_id, graph["stage"])}
-    {_contact_orders_section(graph)}
-    {_contact_invoices_section(graph)}
-    <div class="section">
-      <div class="section-head"><h2>Notes</h2></div>
-      <form method="post" action="/contacts/{contact_id}/notes">
-        <label class="grow">Notes
-          <textarea name="notes" rows="4" maxlength="4000"
-            >{escape(contact.get("notes") or "")}</textarea></label>
-        <p class="mt-4"><button class="approve" type="submit">Save notes</button></p>
-      </form>
+    <div class="detail-grid">
+      <div class="detail-main">
+        {_contact_orders_section(graph)}
+        {_contact_invoices_section(graph)}
+        <div class="section">
+          <div class="section-head"><h2>Notes</h2></div>
+          <form method="post" action="/contacts/{contact_id}/notes">
+            <label class="grow">Notes
+              <textarea name="notes" rows="4" maxlength="4000"
+                >{escape(contact.get("notes") or "")}</textarea></label>
+            <p class="mt-4"><button class="approve" type="submit">Save notes</button></p>
+          </form>
+        </div>
+      </div>
+      <aside class="detail-side" aria-label="About this contact">
+        <div class="section">
+          <div class="section-head"><h2>About</h2></div>
+          <div class="detail-tags">{about_tags}</div>
+          {alias_block}
+        </div>
+        {_contact_stage_form(contact_id, graph["stage"])}
+      </aside>
     </div>"""
 
     return render_shell("Contacts", "", content, message, error, wide=True)
