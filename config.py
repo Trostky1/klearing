@@ -2,8 +2,8 @@
 App-wide constants for Klearing.
 
 One place for the name, version, and port so nothing else hardcodes
-them. The port deliberately differs from the original Go Mode
-instance's 8000 so both apps can run on the same machine.
+them. The port deliberately avoids common dev ports such as 8000 so Klearing
+can run next to other local apps.
 """
 
 import os
