@@ -2472,6 +2472,48 @@ def _home_insights_widget():
     </section>"""
 
 
+AGING_LABELS = (
+    ("current", "Not due yet"),
+    ("1-30", "1 to 30 days late"),
+    ("31-60", "31 to 60 days late"),
+    ("61-90", "61 to 90 days late"),
+    ("90+", "Over 90 days late"),
+)
+
+
+def _home_owed_panel():
+    """Money customers owe you, by how late it is.
+
+    Reads the same per-invoice balances (integer cents) and aging buckets
+    as the A/R aging report, so the two always agree. Left out until at
+    least one invoice exists, because there is nothing to age before then.
+    """
+    today = date.today().isoformat()
+    views = [_invoice_view(invoice, today) for invoice in db.list_invoices()]
+    if not views:
+        return ""
+    totals = {bucket: 0 for bucket, _ in AGING_LABELS}
+    for view in views:
+        if view["status"] in ("sent", "partial", "overdue"):
+            totals[view["bucket"]] += view["balance"]
+    cell = lambda cents: ui.money(Decimal(cents) / 100)
+    rows = "".join(
+        f'<tr><td>{label}</td><td class="num amount">{cell(totals[bucket])}</td></tr>'
+        for bucket, label in AGING_LABELS)
+    grand = sum(totals.values())
+    return f"""
+    <div class="section">
+      <div class="section-head"><h2>Owed to you</h2>
+        <a href="/invoices?tab=aging">See each customer</a></div>
+      <table class="table-hover">
+        <thead><tr><th>How late</th><th class="num">Amount</th></tr></thead>
+        <tbody>{rows}</tbody>
+        <tfoot><tr><th>Total owed</th>
+          <th class="num amount">{cell(grand)}</th></tr></tfoot>
+      </table>
+    </div>"""
+
+
 def render_home_page(message=None, error=None):
     # The cards backed by live bank calls fill in after paint via the JSON
     # endpoints below, so
@@ -2508,6 +2550,7 @@ def render_home_page(message=None, error=None):
                    f'{dash_top_categories()}{dash_vendor_flag()}'
                    f'{dash_subscriptions()}</div>',
                    note="income, spending, vendors")}
+    {_home_owed_panel()}
     {ui.disclosure("Store and traffic",
                    f'<div class="dash-grid">{dash_shopify()}'
                    f'{dash_traffic()}</div>',
