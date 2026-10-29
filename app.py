@@ -538,7 +538,7 @@ def _review_detail_panel(item, categories, show_auto_suggestions):
     return f"""
     <div class="review-detail is-hidden" id="detail-{item_id}"
          data-vendor="{escape(item["vendor"], quote=True)}"
-         data-meta="{escape(item["date"], quote=True)} &middot; {escape(item["source"], quote=True)}"
+         data-meta="{escape(item["date"], quote=True)}, {escape(item["source"], quote=True)}"
          data-amount="{escape(signed_money(item), quote=True)}"
          data-direction="{escape(item["direction"], quote=True)}">
       <div class="drawer-body">
@@ -596,9 +596,8 @@ def _review_summary_strip(items):
             "in money in or out" if transfers else None)
     return f"""
     <div class="stat-grid mb-4">
-      {ui.stat("Waiting", str(len(items)), sub=note)}
       {ui.stat("Money in", money(totals["total_in"]), tone="in")}
-      {ui.stat("Money out", money(totals["total_out"]), tone="out")}
+      {ui.stat("Money out", money(totals["total_out"]), tone="out", sub=note)}
     </div>"""
 
 
@@ -654,8 +653,8 @@ def _review_transactions_content(items, categories=None, dup_item_id=None,
           </td>
           <td class="vendor-name" data-sort-value="{safe_vendor}">
             {escape(item["vendor"])}{transfer_tag}
-            <div class="meta">{escape(item["date"])} &middot;
-              {escape(item["source"])} {waiting_html}</div>
+            <div class="meta"><span>{escape(item["date"])}</span>
+              <span>{escape(item["source"])}</span> {waiting_html}</div>
           </td>
           <td class="review-cat">{cat_tag}</td>
           <td class="num {item["direction"]}"
@@ -687,8 +686,8 @@ def _review_transactions_content(items, categories=None, dup_item_id=None,
 
     return f"""
     {_review_summary_strip(items)}
-    <div class="sub">Check each transaction, then record it in your
-      accounting or dismiss it. Nothing is recorded without your say-so.</div>
+    <div class="sub">Check each transaction, then record it or dismiss it.
+      Nothing is recorded without your approval.</div>
     <table class="table-hover" data-select="#review-bulk"
            data-review-table{open_attr}>
       <thead>
@@ -705,9 +704,8 @@ def _review_transactions_content(items, categories=None, dup_item_id=None,
       <tbody>{rows}</tbody>
     </table>
     {overflow}
-    <p class="hint">Use <kbd>j</kbd> and <kbd>k</kbd> to move between rows,
-      <kbd>Enter</kbd> to open one, <kbd>Esc</kbd> to close. Select several
-      to handle them together.</p>
+    <p class="hint"><kbd>j</kbd> <kbd>k</kbd> move, <kbd>Enter</kbd> opens,
+      <kbd>Esc</kbd> closes.</p>
     <div class="review-panels is-hidden">{panels}</div>
     <div class="bulk-bar" id="review-bulk" role="status">
       <span class="count">0 selected</span>
@@ -1080,7 +1078,7 @@ def _review_duplicate_row(item, dup_category):
     <tr class="is-duplicate">
       <td class="select-cell"></td>
       <td class="vendor-name">{escape(item["vendor"])}
-        <div class="meta">{escape(item["date"])} &middot;
+        <div class="meta"><span>{escape(item["date"])}</span>
           <span class="dash-flag">Already posted by
             {escape(posted_by)}{when}</span></div>
       </td>
@@ -3467,7 +3465,7 @@ def vendor_expense_items(vendor):
 
 def render_vendor_detail_page(vendor, items, total_count, message=None,
                               error=None):
-    back_link = '<p class="hint"><a href="/vendors">&larr; All vendors</a></p>'
+    back_link = '<p class="hint"><a href="/vendors">All vendors</a></p>'
     if not items:
         content = f"""
         <div class="empty">
@@ -3540,7 +3538,7 @@ def render_category_detail_page(category, direction, status, start_date,
     period instead of by vendor."""
     back_link = (f'<p class="hint"><a href="/summary?start='
                 f'{quote(start_date)}&end={quote(end_date)}">'
-                f'&larr; Back to Summary</a></p>')
+                f'Back to Summary</a></p>')
     if not items:
         content = f"""
         <div class="empty">
@@ -6603,10 +6601,7 @@ def render_invoices_page(tab="all", message=None, error=None):
     else:
         body = _invoice_table(views, "No invoices yet.")
 
-    header_extra = """
-      <div class="header-actions">
-        <a class="btn-link primary" href="/invoices/new">New invoice</a>
-      </div>"""
+    header_extra = ""
     strip = (_invoice_summary_strip(views)
              if views and active != "recurring" else "")
     content = f"{strip}{_invoice_nav(active)}{body}"
@@ -6787,7 +6782,7 @@ def _recurring_template_editor(template, message=None, error=None):
     tax = Decimal(totals["tax"]) / 100
 
     return f"""
-    <p class="hint"><a href="/invoices?tab=recurring">&larr; All recurring
+    <p class="hint"><a href="/invoices?tab=recurring">All recurring
       invoices</a></p>
     <div class="section">
       <div class="section-head"><h2>{escape(template["name"] or "Untitled")}</h2>
@@ -7102,7 +7097,6 @@ def render_invoice_page(invoice_id, message=None, error=None):
         <a class="btn-link" href="/invoices">All invoices</a>
       </div>"""
     content = (f'<div class="sub">{escape(number)}</div>'
-               + _invoice_overview(view)
                + _invoice_steps(view)
                + _invoice_payment_link_block(view)
                + _invoice_editor(view, contacts)
@@ -7110,20 +7104,6 @@ def render_invoice_page(invoice_id, message=None, error=None):
                + _invoice_activity(invoice_id))
     return render_shell("Invoices", header_extra, content, message, error,
                         wide=True)
-
-
-def _invoice_overview(view):
-    """Customer, total, outstanding and due date, above the editor."""
-    invoice = view["invoice"]
-    contact = db.get_contact(invoice["contact_id"]) or {}
-    cell = lambda cents: ui.money(Decimal(cents) / 100)
-    return f"""
-    <div class="stat-grid mb-4">
-      {ui.stat("Customer", escape(contact.get("display_name") or "Not set"))}
-      {ui.stat("Total", cell(view["totals"]["gross"]))}
-      {ui.stat("Outstanding", cell(view["balance"]))}
-      {ui.stat("Due", escape(invoice["due_date"] or "Not set"))}
-    </div>"""
 
 
 def _invoice_steps(view):
@@ -8166,7 +8146,7 @@ def render_contact_detail(contact_id, message=None, error=None):
     about_tags = (" ".join(identity) if identity
                   else '<span class="hint">No email or phone saved.</span>')
     content = f"""
-    <p class="hint"><a href="/contacts">&larr; All contacts</a></p>
+    <p class="hint"><a href="/contacts">All contacts</a></p>
     <div class="section">
       <div class="section-head"><h2>{escape(contact["display_name"])}</h2>
         {_stage_pill(graph["stage"])}</div>
@@ -8902,7 +8882,7 @@ def shopify_order(order_id: str):
         for label, value in money_rows)
 
     content = f"""
-    <div class="subnav-back mb-4"><a href="/shopify">&larr; All orders</a></div>
+    <div class="subnav-back mb-4"><a href="/shopify">All orders</a></div>
     <div class="section">
       <div class="section-head"><h2>Order #{escape(order_id)}</h2>
         <span class="tag {tone}">{escape(row["financial_status"] or "unknown")}</span>
@@ -8978,7 +8958,7 @@ def shopify_product(product_id: str):
                        "includes this product yet.</div>")
 
     content = f"""
-    <div class="subnav-back mb-4"><a href="/shopify">&larr; All products</a></div>
+    <div class="subnav-back mb-4"><a href="/shopify">All products</a></div>
     <div class="section">
       <div class="section-head"><h2>{escape(product["title"])}</h2>
         <span class="tag">{escape(product["product_type"] or "Product")}</span></div>
@@ -10807,7 +10787,7 @@ def render_data_health(message=None, error=None):
     <div class="section"><div class="section-head"><h2>Balance check</h2></div><table><thead><tr><th data-sort="text">Account</th><th class="num" data-sort="num">Bank balance</th><th class="num" data-sort="num">Last statement</th><th class="num" data-sort="num">Difference</th><th data-sort="text">Status</th></tr></thead><tbody>{balance_rows}</tbody></table></div>
     <div class="section"><div class="section-head"><h2>Missing transaction detection</h2></div><table><thead><tr><th data-sort="text">Account</th><th class="num" data-sort="num">This month</th><th class="num" data-sort="num">Same period last month</th><th data-sort="date">Last transaction</th><th data-sort="text">Status</th></tr></thead><tbody>{missing_rows}</tbody></table></div>
     <div class="section"><div class="section-head"><h2>Manual fallback</h2></div><div class="none-note">OFX, QFX, and CSV imports are deduplicated and go to Pending for approval.</div>{import_forms}</div>
-    <p class="hint"><a href="/tools/data-health">&larr; All tools</a></p>'''
+    <p class="hint"><a href="/tools/data-health">All tools</a></p>'''
     return render_shell("Tools", "", content, message, error, wide=True)
 
 
@@ -10973,7 +10953,7 @@ def render_accountant_export_page(period, message=None, error=None,
       {notion_link}
       {close_note}
     </div>
-    <p class="hint mt-4"><a href="/tools/data-health">&larr; All
+    <p class="hint mt-4"><a href="/tools/data-health">All
       tools</a></p>"""
     return render_shell("Tools", "", content, message, error)
 
@@ -11143,7 +11123,7 @@ def render_unit_economics(unit_cost_raw=None, price_raw=None,
       <button class="check" type="submit">Calculate</button>
     </form>
     {result_html}
-    <p class="hint mt-4"><a href="/tools/data-health">&larr; All
+    <p class="hint mt-4"><a href="/tools/data-health">All
       tools</a></p>"""
     return render_shell("Tools", "", content, message, error)
 
@@ -11248,7 +11228,7 @@ def render_nexus(message=None, error=None):
         <button class="save-btn" type="submit">Add state</button>
       </form>
     </div>
-    <p class="hint"><a href="/tools/data-health">&larr; All tools</a></p>"""
+    <p class="hint"><a href="/tools/data-health">All tools</a></p>"""
     return render_shell("Tools", "", content, message, error)
 
 
@@ -11429,7 +11409,7 @@ def render_contractors(message=None, error=None):
       so confirm each one yourself.</div>
     {body}
     {gusto_note}
-    <p class="hint mt-4"><a href="/tools/data-health">&larr; All
+    <p class="hint mt-4"><a href="/tools/data-health">All
       tools</a></p>"""
     return render_shell("Tools", "", content, message, error)
 
@@ -11569,7 +11549,7 @@ def render_audit(message=None, error=None, start="", end="", q=""):
       date shown when recorded).</div>
     {filter_form}
     {body}
-    <p class="hint mt-4"><a href="/tools/data-health">&larr; All
+    <p class="hint mt-4"><a href="/tools/data-health">All
       tools</a></p>"""
     return render_shell("Tools", "", content, message, error)
 
