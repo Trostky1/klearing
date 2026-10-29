@@ -595,7 +595,7 @@ def _review_summary_strip(items):
     note = (f"{transfers} transfer{'s' if transfers != 1 else ''} not counted "
             "in money in or out" if transfers else None)
     return f"""
-    <div class="stat-grid mb-4">
+    <div class="stat-grid stat-grid-lead mb-4">
       {ui.stat("Money in", money(totals["total_in"]), tone="in")}
       {ui.stat("Money out", money(totals["total_out"]), tone="out", sub=note)}
     </div>"""
@@ -3696,7 +3696,7 @@ def render_vendors_page(rows, threshold_pct, subscriptions=None,
         spent_before = sum(row["last_month"] for row in rows)
         jumps = sum(1 for row in rows if row["jump_pct"] is not None)
         vendor_strip = f"""
-        <div class="stat-grid mb-4">
+        <div class="stat-grid stat-grid-lead mb-4">
           {ui.stat("Spent this month", money(spent_now))}
           {ui.stat("Spent last month", money(spent_before))}
           {ui.stat("Vendors with a jump", str(jumps),
@@ -6633,7 +6633,7 @@ def _invoice_summary_strip(views, today=None):
             due_soon += view["balance"]
     cell = lambda cents: ui.money(Decimal(cents) / 100)
     return f"""
-    <div class="stat-grid mb-4">
+    <div class="stat-grid stat-grid-lead mb-4">
       {ui.stat("Overdue", cell(overdue), tone="out" if overdue else None)}
       {ui.stat("Due in the next 30 days", cell(due_soon))}
       {ui.stat("Outstanding", cell(outstanding))}
