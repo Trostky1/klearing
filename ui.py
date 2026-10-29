@@ -605,6 +605,9 @@ STYLE = _ROOT_VARS + _FONT_FACES + """
     font-variant-numeric: tabular-nums lining-nums;
   }
   .stat-value { font-size: var(--fs-xl); }
+  /* ui.stat(tone=...) has always emitted these classes. */
+  .stat-value.in { color: var(--income); }
+  .stat-value.out { color: var(--expense); }
   .stat-label, .totals .label, .planning-result .label, .dash-kicker {
     color: var(--muted);
   }
@@ -624,6 +627,20 @@ STYLE = _ROOT_VARS + _FONT_FACES + """
     padding: var(--sp-3); background: var(--surface);
     font-size: var(--fs-base);
   }
+  /* Lead figures: the summary strips at the top of Invoices, Review and
+     Vendors. The number leads at the display size the scale already owns,
+     with its label stacked above it. Cells stay wide enough for a
+     ten-character money figure, and a longer one wraps rather than clips. */
+  .stat-grid-lead { grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+  .stat-grid-lead .stat-cell {
+    flex-direction: column; justify-content: flex-start; gap: var(--sp-2);
+    padding: var(--sp-4) var(--sp-5);
+  }
+  .stat-grid-lead .stat-label { font-size: var(--fs-sm); font-weight: 600; }
+  .stat-grid-lead .stat-value {
+    font-size: var(--fs-2xl); min-width: 0; overflow-wrap: anywhere;
+  }
+  .stat-grid-lead .stat-value .dash-sub { font-size: var(--fs-sm); font-weight: 400; }
   .totals {
     display: flex; gap: var(--sp-6); flex-wrap: wrap;
     margin-bottom: var(--sp-1);
