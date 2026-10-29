@@ -261,15 +261,15 @@ STYLE = _ROOT_VARS + _FONT_FACES + """
   .side-nav [role="group"] { display: flex; flex-direction: column; gap: 3px; }
   .side-nav a {
     display: flex; align-items: center; gap: 11px;
-    padding: 9px 13px; border-radius: 999px;
+    padding: 9px 13px; border-radius: var(--radius-sm);
     color: var(--muted); text-decoration: none; font-size: var(--fs-base);
     font-weight: 500; border: 1px solid transparent;
     transition: background-color 0.15s, color 0.15s, border-color 0.15s;
   }
   .side-nav a:hover { background: var(--hover-fill); color: var(--ink); }
   .side-nav a.active {
-    background: rgba(255, 255, 255, 0.07); color: var(--ink);
-    font-weight: 600; border-color: rgba(255, 255, 255, 0.10);
+    background: var(--brand-soft); color: var(--brand-ink);
+    font-weight: 600; border-color: var(--brand-line);
   }
   .nav-icon {
     width: 20px; height: 20px; flex-shrink: 0;
@@ -1155,8 +1155,7 @@ STYLE = _ROOT_VARS + _FONT_FACES + """
 
   .nav-group {
     padding: var(--sp-4) 12px var(--sp-1);
-    font-size: var(--fs-2xs); font-weight: 600; letter-spacing: 0.08em;
-    text-transform: uppercase; color: var(--faint);
+    font-size: var(--fs-xs); font-weight: 600; color: var(--faint);
   }
   .nav-badge {
     margin-left: auto; padding: 1px 7px; border-radius: 999px;
@@ -1164,6 +1163,34 @@ STYLE = _ROOT_VARS + _FONT_FACES + """
     color: var(--brand-ink); font-size: var(--fs-2xs); font-weight: 600;
     font-variant-numeric: tabular-nums;
   }
+  /* The header "New" menu: one native <details>, no script needed to open
+     it. table.js only closes it on an outside click or Escape. */
+  .new-menu { position: relative; }
+  .new-menu > summary {
+    list-style: none; display: inline-flex; align-items: center;
+    gap: var(--sp-2); padding: 9px 16px; border-radius: 999px;
+    background: var(--action); color: var(--action-ink);
+    font-size: var(--fs-base); font-weight: 600; cursor: pointer;
+    transition: background-color var(--t-state), box-shadow var(--t-state);
+  }
+  .new-menu > summary::-webkit-details-marker { display: none; }
+  .new-menu > summary:hover { background: var(--white); }
+  .new-menu > summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .new-menu-list {
+    position: absolute; right: 0; top: calc(100% + var(--sp-2)); z-index: 60;
+    min-width: 220px; padding: var(--sp-2);
+    background: var(--overlay); border: 1px solid var(--line-strong);
+    border-radius: var(--radius-sm); box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
+    display: flex; flex-direction: column; gap: 2px;
+  }
+  .new-menu-list a {
+    padding: 9px 12px; border-radius: var(--radius-sm); color: var(--ink);
+    text-decoration: none; font-size: var(--fs-base); font-weight: 500;
+  }
+  .new-menu-list a:hover, .new-menu-list a:focus-visible {
+    background: var(--hover-fill); outline: none;
+  }
+
   .nav-search {
     display: flex; align-items: center; gap: 10px; width: 100%;
     margin: 0 0 var(--sp-2); padding: 9px 12px;
@@ -2690,6 +2717,25 @@ def nav_group_html(prefix, group_label, links_html):
             f"{links_html}</div>")
 
 
+# Real create destinations only. Each target already exists as a route, so
+# this menu adds no new mutation path.
+NEW_MENU_ITEMS = [
+    ("Invoice", "/invoices/new"),
+    ("Recurring invoice", "/invoices?tab=recurring"),
+    ("Contact", "/contacts"),
+]
+
+
+def render_new_menu():
+    """The Wave-style create button: one place to start new work."""
+    links = "".join(f'<a href="{href}">{escape(label)}</a>'
+                    for label, href in NEW_MENU_ITEMS)
+    return ('<details class="new-menu"><summary>'
+            '<svg class="nav-icon" viewBox="0 0 20 20" aria-hidden="true">'
+            '<path d="M10 4v12M4 10h12"/></svg>New</summary>'
+            f'<div class="new-menu-list">{links}</div></details>')
+
+
 def render_search_chip():
     """The command palette trigger, rendered once in the page header so
     it is visible and labelled at every width — unlike the old
@@ -3035,7 +3081,7 @@ def render_shell(active_tab, header_extra, content, message=None, error=None,
       <div class="main-inner{' wide' if wide else ''}">
         <header>
           <h1>{page_title}</h1>
-          <div class="header-actions">{render_search_chip()}{header_extra}</div>
+          <div class="header-actions">{render_search_chip()}{header_extra}{render_new_menu()}</div>
         </header>
         {banner}
         {content}
@@ -3048,6 +3094,6 @@ def render_shell(active_tab, header_extra, content, message=None, error=None,
   {script}
   <script>{ASSISTANT_JS}</script>
   <script>window.KLEARING_PALETTE = {palette_payload()};</script>
-  <script src="/static/app/table.js?v=9" defer></script>
+  <script src="/static/app/table.js?v=10" defer></script>
 </body>
 </html>"""
