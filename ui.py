@@ -333,8 +333,7 @@ STYLE = _ROOT_VARS + _FONT_FACES + """
      0.75rem instead of 0.72rem; .dev-label's tracking was 0.05em
      instead of 0.04em) — each site below adds only its own layout. */
   .totals .label, .dash-kicker, .chart-title, .fu-field label, h3, th,
-  .dash-mini-label, .dev-tools .dev-label, .ai-insight-kicker,
-  .conn-group-label {
+  .dash-mini-label, .dev-tools .dev-label, .ai-insight-kicker {
     font-size: var(--fs-xs); font-weight: 600; color: var(--faint);
     text-transform: uppercase; letter-spacing: 0.04em;
   }
@@ -1975,6 +1974,7 @@ STYLE = _ROOT_VARS + _FONT_FACES + """
      the shared eyebrow rule above for its type treatment. */
   .conn-group { display: flex; align-items: center; gap: 10px; margin: 28px 0 4px; }
   .conn-group:first-child { margin-top: 0; }
+  .conn-group-label { font-size: var(--fs-sm); font-weight: 600; color: var(--faint); }
   .conn-group-line { flex: 1; height: 1px; background: var(--line); }
 
   /* Gmail-reader hints on Invoices / Follow-ups cards and vendor rows */
