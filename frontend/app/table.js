@@ -686,6 +686,20 @@
     liveRegion.textContent = text;
   }
 
+  function initNewMenu() {
+    var menu = document.querySelector("details.new-menu");
+    if (!menu) return;
+    document.addEventListener("click", function (event) {
+      if (menu.open && !menu.contains(event.target)) menu.open = false;
+    });
+    document.addEventListener("keydown", function (event) {
+      if (event.key === "Escape" && menu.open) {
+        menu.open = false;
+        menu.querySelector("summary").focus();
+      }
+    });
+  }
+
   function init() {
     Array.prototype.forEach.call(
       document.querySelectorAll("table"), function (table) {
@@ -697,6 +711,7 @@
     initDrawer();
     initPalette();
     initMoreSheet();
+    initNewMenu();
   }
 
   if (document.readyState === "loading") {

@@ -3,6 +3,7 @@
 import importlib.util
 import json
 import os
+from datetime import date
 import sys
 import tempfile
 from pathlib import Path
@@ -97,7 +98,7 @@ def run():
           and data["residual"] == 10.0)
     history = db.list_reconcile_history(days=30)
     check("native snapshot is explicitly marked as native-era",
-          db.get_setting(app.NATIVE_RECONCILE_SINCE_KEY) == "2026-08-12"
+          db.get_setting(app.NATIVE_RECONCILE_SINCE_KEY) == date.today().isoformat()
           and history[-1]["wave_balance"] == 250.0)
     check("pre-cutover reconciliation rows stay historical",
           accountant_export._nearest_snapshot_on_or_before("2026-08-11") is None)

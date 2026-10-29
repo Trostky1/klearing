@@ -177,7 +177,12 @@ def run():
         and "/static/insights/financial.js" in routes)
     original_config = app.cash_alert.get_config
     original_balance = app.cash_alert.current_cash_balance
+    original_snapshot = app.financial_insights.financial_snapshot
     try:
+        # Fixture expenses are dated 2026-05 to 2026-07 and age out of the
+        # trailing 90 day burn window, so pin the burn this check relies on.
+        app.financial_insights.financial_snapshot = lambda *a, **k: {
+            "daily_burn_cents": 1000}
         app.cash_alert.get_config = lambda: {
             "cash_account_ids": ["checking"],
             "balance_threshold": None, "runway_days": None,
@@ -190,6 +195,7 @@ def run():
     finally:
         app.cash_alert.get_config = original_config
         app.cash_alert.current_cash_balance = original_balance
+        app.financial_insights.financial_snapshot = original_snapshot
     failures += check(
         "cash lookup reuses selected accounts and fails without breaking insights",
         cash["state"] == "ok" and cash["balance_cents"] == 100000

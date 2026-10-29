@@ -261,15 +261,15 @@ STYLE = _ROOT_VARS + _FONT_FACES + """
   .side-nav [role="group"] { display: flex; flex-direction: column; gap: 3px; }
   .side-nav a {
     display: flex; align-items: center; gap: 11px;
-    padding: 9px 13px; border-radius: 999px;
+    padding: 9px 13px; border-radius: var(--radius-sm);
     color: var(--muted); text-decoration: none; font-size: var(--fs-base);
     font-weight: 500; border: 1px solid transparent;
     transition: background-color 0.15s, color 0.15s, border-color 0.15s;
   }
   .side-nav a:hover { background: var(--hover-fill); color: var(--ink); }
   .side-nav a.active {
-    background: rgba(255, 255, 255, 0.07); color: var(--ink);
-    font-weight: 600; border-color: rgba(255, 255, 255, 0.10);
+    background: var(--brand-soft); color: var(--brand-ink);
+    font-weight: 600; border-color: var(--brand-line);
   }
   .nav-icon {
     width: 20px; height: 20px; flex-shrink: 0;
@@ -333,10 +333,8 @@ STYLE = _ROOT_VARS + _FONT_FACES + """
      0.75rem instead of 0.72rem; .dev-label's tracking was 0.05em
      instead of 0.04em) — each site below adds only its own layout. */
   .totals .label, .dash-kicker, .chart-title, .fu-field label, h3, th,
-  .dash-mini-label, .dev-tools .dev-label, .ai-insight-kicker,
-  .conn-group-label {
+  .dash-mini-label, .dev-tools .dev-label, .ai-insight-kicker {
     font-size: var(--fs-xs); font-weight: 600; color: var(--faint);
-    text-transform: uppercase; letter-spacing: 0.04em;
   }
   /* Deliberately smaller than --fs-xs (the shared eyebrow rule above) —
      a documented exception for this denser 3-up dash-card context, not
@@ -785,8 +783,7 @@ STYLE = _ROOT_VARS + _FONT_FACES + """
      context. Equal weight everywhere is what caused the problem. */
   .today-card.is-primary { border-color: var(--brand-line); background: var(--brand-soft); }
   .today-card .kicker, .source-briefing-kicker {
-    font-size: var(--fs-2xs); font-weight: 600; letter-spacing: 0.08em;
-    text-transform: uppercase; color: var(--faint);
+    font-size: var(--fs-xs); font-weight: 600; color: var(--faint);
   }
   .today-card .figure {
     font-size: var(--fs-xl); font-weight: 600; letter-spacing: -0.03em;
@@ -851,8 +848,7 @@ STYLE = _ROOT_VARS + _FONT_FACES + """
   }
   .source-signal.urgent:hover { border-color: var(--warn); background: var(--warn-soft); }
   .source-signal-tier {
-    color: var(--muted); font-size: var(--fs-2xs); font-weight: 600;
-    letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--muted); font-size: var(--fs-xs); font-weight: 600;
   }
   .source-signal.urgent .source-signal-tier { color: var(--warn); }
   .source-signal-copy { font-size: var(--fs-md); line-height: 1.45; }
@@ -923,8 +919,7 @@ STYLE = _ROOT_VARS + _FONT_FACES + """
   }
   .insight-metric:hover { background: var(--hover-fill); }
   .insight-metric-source {
-    color: var(--faint); font-size: var(--fs-2xs); font-weight: 600;
-    letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--faint); font-size: var(--fs-xs); font-weight: 600;
   }
   .insight-metric-label {
     grid-column: 1 / -1; min-width: 0; overflow-wrap: anywhere;
@@ -999,8 +994,7 @@ STYLE = _ROOT_VARS + _FONT_FACES + """
   .drawer-field { margin-bottom: var(--sp-4); }
   .drawer-field > label {
     display: block; margin-bottom: var(--sp-2);
-    font-size: var(--fs-xs); font-weight: 600; letter-spacing: 0.06em;
-    text-transform: uppercase; color: var(--faint);
+    font-size: var(--fs-xs); font-weight: 600; color: var(--faint);
   }
   .drawer-field select, .drawer-field input[type="text"] { width: 100%; }
 
@@ -1155,8 +1149,7 @@ STYLE = _ROOT_VARS + _FONT_FACES + """
 
   .nav-group {
     padding: var(--sp-4) 12px var(--sp-1);
-    font-size: var(--fs-2xs); font-weight: 600; letter-spacing: 0.08em;
-    text-transform: uppercase; color: var(--faint);
+    font-size: var(--fs-xs); font-weight: 600; color: var(--faint);
   }
   .nav-badge {
     margin-left: auto; padding: 1px 7px; border-radius: 999px;
@@ -1164,6 +1157,95 @@ STYLE = _ROOT_VARS + _FONT_FACES + """
     color: var(--brand-ink); font-size: var(--fs-2xs); font-weight: 600;
     font-variant-numeric: tabular-nums;
   }
+  /* Invoice progress: Create, Send, Get paid. Read-only status. */
+  .progress-steps {
+    list-style: none; margin: 0 0 var(--gap-section); padding: 0;
+    display: grid; gap: var(--sp-3);
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  @media (max-width: 900px) {
+    .progress-steps { grid-template-columns: minmax(0, 1fr); }
+  }
+  .progress-step {
+    display: grid; grid-template-columns: 28px minmax(0, 1fr);
+    gap: var(--sp-3); align-items: start; padding: var(--pad-compact);
+    background: var(--surface); border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+  }
+  .step-mark {
+    width: 28px; height: 28px; border-radius: 999px; display: grid;
+    place-items: center; border: 1px solid var(--line-strong);
+    color: var(--muted); font-size: var(--fs-sm); font-weight: 600;
+    font-variant-numeric: tabular-nums;
+  }
+  .progress-step.done .step-mark {
+    background: var(--brand-soft); border-color: var(--brand-line);
+    color: var(--brand-ink);
+  }
+  .progress-step[aria-current="step"] .step-mark { border-color: var(--ink); color: var(--ink); }
+  .step-title { font-size: var(--fs-md); font-weight: 600; }
+  .step-detail { color: var(--muted); font-size: var(--fs-base); }
+
+  /* Pipeline board: one column per stage, scrolls sideways when wide. */
+  .board {
+    display: grid; grid-auto-flow: column; grid-auto-columns: minmax(220px, 1fr);
+    gap: var(--sp-3); overflow-x: auto; padding-bottom: var(--sp-2);
+  }
+  .board-col {
+    background: var(--surface); border: 1px solid var(--line);
+    border-radius: var(--radius-sm); padding: var(--sp-3); min-width: 0;
+    display: flex; flex-direction: column; gap: var(--sp-3);
+  }
+  .board-head { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-2); }
+  .board-head h2 { font-size: var(--fs-md); font-weight: 600; }
+  .board-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--sp-2); }
+  .board-card {
+    background: var(--raised); border: 1px solid var(--line);
+    border-radius: var(--radius-sm); padding: var(--sp-3);
+    display: flex; flex-direction: column; gap: var(--sp-1);
+  }
+  .board-card a { font-weight: 600; overflow-wrap: anywhere; }
+  .board-amount { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+
+  /* Record detail: the work on the left, who it is about on the right. */
+  .detail-grid {
+    display: grid; grid-template-columns: minmax(0, 1fr) minmax(240px, 300px);
+    gap: var(--gap-section); align-items: start;
+  }
+  .detail-main, .detail-side { min-width: 0; }
+  .detail-tags { display: flex; flex-wrap: wrap; gap: var(--sp-2); }
+  @media (max-width: 900px) {
+    .detail-grid { grid-template-columns: minmax(0, 1fr); }
+  }
+
+  /* The header "New" menu: one native <details>, no script needed to open
+     it. table.js only closes it on an outside click or Escape. */
+  .new-menu { position: relative; }
+  .new-menu > summary {
+    list-style: none; display: inline-flex; align-items: center;
+    gap: var(--sp-2); padding: 9px 16px; border-radius: 999px;
+    background: var(--action); color: var(--action-ink);
+    font-size: var(--fs-base); font-weight: 600; cursor: pointer;
+    transition: background-color var(--t-state), box-shadow var(--t-state);
+  }
+  .new-menu > summary::-webkit-details-marker { display: none; }
+  .new-menu > summary:hover { background: var(--white); }
+  .new-menu > summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .new-menu-list {
+    position: absolute; right: 0; top: calc(100% + var(--sp-2)); z-index: 60;
+    min-width: 220px; padding: var(--sp-2);
+    background: var(--overlay); border: 1px solid var(--line-strong);
+    border-radius: var(--radius-sm); box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
+    display: flex; flex-direction: column; gap: 2px;
+  }
+  .new-menu-list a {
+    padding: 9px 12px; border-radius: var(--radius-sm); color: var(--ink);
+    text-decoration: none; font-size: var(--fs-base); font-weight: 500;
+  }
+  .new-menu-list a:hover, .new-menu-list a:focus-visible {
+    background: var(--hover-fill); outline: none;
+  }
+
   .nav-search {
     display: flex; align-items: center; gap: 10px; width: 100%;
     margin: 0 0 var(--sp-2); padding: 9px 12px;
@@ -1205,8 +1287,7 @@ STYLE = _ROOT_VARS + _FONT_FACES + """
   .palette-list { max-height: 46vh; overflow-y: auto; padding: var(--sp-2); }
   .palette-group {
     padding: var(--sp-3) var(--sp-3) var(--sp-1);
-    font-size: var(--fs-2xs); font-weight: 600; letter-spacing: 0.08em;
-    text-transform: uppercase; color: var(--faint);
+    font-size: var(--fs-xs); font-weight: 600; color: var(--faint);
   }
   .palette-item {
     display: flex; align-items: center; gap: var(--sp-3);
@@ -1887,6 +1968,7 @@ STYLE = _ROOT_VARS + _FONT_FACES + """
      the shared eyebrow rule above for its type treatment. */
   .conn-group { display: flex; align-items: center; gap: 10px; margin: 28px 0 4px; }
   .conn-group:first-child { margin-top: 0; }
+  .conn-group-label { font-size: var(--fs-sm); font-weight: 600; color: var(--faint); }
   .conn-group-line { flex: 1; height: 1px; background: var(--line); }
 
   /* Gmail-reader hints on Invoices / Follow-ups cards and vendor rows */
@@ -2690,6 +2772,25 @@ def nav_group_html(prefix, group_label, links_html):
             f"{links_html}</div>")
 
 
+# Real create destinations only. Each target already exists as a route, so
+# this menu adds no new mutation path.
+NEW_MENU_ITEMS = [
+    ("Invoice", "/invoices/new"),
+    ("Recurring invoice", "/invoices?tab=recurring"),
+    ("Contact", "/contacts"),
+]
+
+
+def render_new_menu():
+    """The Wave-style create button: one place to start new work."""
+    links = "".join(f'<a href="{href}">{escape(label)}</a>'
+                    for label, href in NEW_MENU_ITEMS)
+    return ('<details class="new-menu"><summary>'
+            '<svg class="nav-icon" viewBox="0 0 20 20" aria-hidden="true">'
+            '<path d="M10 4v12M4 10h12"/></svg>New</summary>'
+            f'<div class="new-menu-list">{links}</div></details>')
+
+
 def render_search_chip():
     """The command palette trigger, rendered once in the page header so
     it is visible and labelled at every width — unlike the old
@@ -3035,7 +3136,7 @@ def render_shell(active_tab, header_extra, content, message=None, error=None,
       <div class="main-inner{' wide' if wide else ''}">
         <header>
           <h1>{page_title}</h1>
-          <div class="header-actions">{render_search_chip()}{header_extra}</div>
+          <div class="header-actions">{render_search_chip()}{header_extra}{render_new_menu()}</div>
         </header>
         {banner}
         {content}
@@ -3048,6 +3149,6 @@ def render_shell(active_tab, header_extra, content, message=None, error=None,
   {script}
   <script>{ASSISTANT_JS}</script>
   <script>window.KLEARING_PALETTE = {palette_payload()};</script>
-  <script src="/static/app/table.js?v=9" defer></script>
+  <script src="/static/app/table.js?v=10" defer></script>
 </body>
 </html>"""

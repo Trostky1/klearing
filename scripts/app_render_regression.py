@@ -433,6 +433,20 @@ def _check_card_reflow_labels():
         "card-reflow" not in contacts,
         "Contacts is a scanning table — cards would put the revenue "
         "figures being compared a screen apart")
+
+    # Pending amounts arrive as Decimal. summarize() adds them to a float
+    # zero and raises, so the Review strip sums as Decimal on its own.
+    from decimal import Decimal
+    strip = app._review_summary_strip([
+        {"direction": "income", "amount": Decimal("936.00")},
+        {"direction": "expense", "amount": Decimal("18.40")},
+        {"direction": "expense", "amount": Decimal("54.99")},
+        {"direction": "transfer", "amount": Decimal("500.00")},
+    ])
+    failed += not check(
+        "the Review strip sums Decimal amounts and leaves transfers out",
+        "$936.00" in strip and "$73.39" in strip and "1 transfer" in strip,
+        strip[:200])
     return failed
 
 
