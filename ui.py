@@ -438,11 +438,10 @@ STYLE = _ROOT_VARS + _FONT_FACES + """
   .actions { display: flex; gap: 8px; }
 
   /* Pills */
-  .transfer-tag, .jump-tag, .tag {
+  .jump-tag, .tag {
     font-size: var(--fs-sm); font-weight: 600;
     border-radius: 999px; padding: 2px 10px; white-space: nowrap;
   }
-  .transfer-tag { color: var(--transfer); border: 1px solid rgba(45, 212, 191, 0.4); margin-left: 8px; }
   .jump-tag { color: var(--warn); border: 1px solid var(--warn-line); background: var(--warn-soft); margin-left: 8px; }
   .tag { color: var(--muted); border: 1px solid var(--line-strong); }
   .tag.ok { color: var(--income); border-color: var(--income-line); background: var(--income-soft); }
@@ -485,9 +484,6 @@ STYLE = _ROOT_VARS + _FONT_FACES + """
     padding: 6px 14px;
   }
   .dev-insert:hover { color: var(--ink); border-color: var(--hover-border-strong); }
-  .dev-vendor {
-    border-style: dashed !important; width: 190px; font-size: var(--fs-sm) !important;
-  }
 
   /* Summary page */
   .range-form {
@@ -519,7 +515,7 @@ STYLE = _ROOT_VARS + _FONT_FACES + """
   .planning-result .value.nonpositive { color: var(--expense); }
   .planning-note { color: var(--faint); font-size: var(--fs-sm); margin-top: 16px; }
   .tax-workspace { min-width: 0; }
-  .tax-toolbar, .tax-toolbar-group, .tax-row-actions, .tax-dialog-actions {
+  .tax-toolbar, .tax-toolbar-group {
     display: flex; align-items: end; gap: 8px; flex-wrap: wrap;
   }
   .tax-toolbar { justify-content: space-between; margin-bottom: 18px; }
@@ -530,11 +526,8 @@ STYLE = _ROOT_VARS + _FONT_FACES + """
   .tax-table-section { padding-bottom: 10px; }
   .tax-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
   #tax-legacy-table { min-width: 760px; }
-  .tax-check-cell { width: 28px; text-align: center; }
-  .tax-check-cell input { margin: 0; }
   .tax-row-title { font-weight: 600; color: var(--ink); }
   .tax-row-detail { color: var(--faint); font-size: var(--fs-sm); margin-top: 2px; }
-  .tax-category-select { min-width: 190px; max-width: 230px; }
   .tax-confidence {
     display: inline-flex; align-items: center; border: 1px solid var(--line-strong);
     border-radius: 999px; padding: 3px 8px; font-size: var(--fs-xs);
@@ -547,8 +540,6 @@ STYLE = _ROOT_VARS + _FONT_FACES + """
   .tax-amount { font-family: var(--font-mono); font-weight: 600; white-space: nowrap; }
   .tax-amount.income { color: var(--income); }
   .tax-amount.expense { color: var(--expense); }
-  .tax-row-actions { flex-wrap: nowrap; }
-  .tax-row-actions button { padding: 7px 10px; }
   .tax-results-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
   .tax-results-grid .section { min-width: 0; }
   .tax-dialog {
@@ -558,7 +549,6 @@ STYLE = _ROOT_VARS + _FONT_FACES + """
   }
   .tax-dialog::backdrop { background: var(--bg); opacity: 0.82; }
   .tax-dialog h2 { margin-bottom: 8px; }
-  .tax-dialog-actions { justify-content: flex-end; margin-top: 18px; }
   .tax-warning-list { margin: 0; padding-left: 20px; color: var(--muted); }
   .tax-warning-list li + li { margin-top: 8px; }
   .section {
@@ -634,7 +624,7 @@ STYLE = _ROOT_VARS + _FONT_FACES + """
     padding: var(--sp-3); background: var(--surface);
     font-size: var(--fs-base);
   }
-  .stat-row, .totals {
+  .totals {
     display: flex; gap: var(--sp-6); flex-wrap: wrap;
     margin-bottom: var(--sp-1);
   }
@@ -1009,7 +999,6 @@ STYLE = _ROOT_VARS + _FONT_FACES + """
     background: var(--surface);
   }
   .drawer-foot .approve { flex: 1; justify-content: center; }
-  .drawer-foot .spacer { flex: 1; }
   .drawer-foot .deny-slot { margin-left: auto; }
   .drawer-foot .deny-slot button {
     background: none; border: 1px solid transparent; color: var(--muted);
@@ -1550,10 +1539,6 @@ STYLE = _ROOT_VARS + _FONT_FACES + """
     font-weight: 400; line-height: 1.05; letter-spacing: -0.015em;
     color: var(--ink);
   }
-  .doc-title + .doc-meta {
-    color: var(--faint); font-size: var(--fs-sm);
-    margin-top: var(--sp-2);
-  }
   /* An explanatory line that belongs to the row above it, not to the
      next one — pulled up tight and given prose measure. */
   .stmt-hint { margin: -4px 2px 10px 0; max-width: 60ch; }
@@ -1767,10 +1752,6 @@ STYLE = _ROOT_VARS + _FONT_FACES + """
   .dash-ok { color: var(--income); font-weight: 600; }
 
   /* Optional note captured on a pending card at approval time */
-  .notes-field { margin-top: 10px; }
-  .notes-field label {
-    font-size: var(--fs-base); color: var(--muted); margin-right: 6px;
-  }
   .notes-input {
     max-width: 320px; width: 100%; font-size: var(--fs-base);
   }
@@ -1878,7 +1859,6 @@ STYLE = _ROOT_VARS + _FONT_FACES + """
   }
   .chart-gauge-fill.warn { fill: url(#kl-bar-h-warn) var(--warn); }
   .chart-gauge-tick { stroke: var(--ink); stroke-width: 1.5; }
-  .dash-gauge { margin-top: 10px; }
   /* two small charts side by side (e.g. sessions + users sparklines) */
   .chart-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
   .chart-pair > div { min-width: 0; }

@@ -596,9 +596,8 @@ def _review_summary_strip(items):
             "in money in or out" if transfers else None)
     return f"""
     <div class="stat-grid mb-4">
-      {ui.stat("Waiting", str(len(items)), sub=note)}
       {ui.stat("Money in", money(totals["total_in"]), tone="in")}
-      {ui.stat("Money out", money(totals["total_out"]), tone="out")}
+      {ui.stat("Money out", money(totals["total_out"]), tone="out", sub=note)}
     </div>"""
 
 
@@ -7098,7 +7097,6 @@ def render_invoice_page(invoice_id, message=None, error=None):
         <a class="btn-link" href="/invoices">All invoices</a>
       </div>"""
     content = (f'<div class="sub">{escape(number)}</div>'
-               + _invoice_overview(view)
                + _invoice_steps(view)
                + _invoice_payment_link_block(view)
                + _invoice_editor(view, contacts)
@@ -7106,20 +7104,6 @@ def render_invoice_page(invoice_id, message=None, error=None):
                + _invoice_activity(invoice_id))
     return render_shell("Invoices", header_extra, content, message, error,
                         wide=True)
-
-
-def _invoice_overview(view):
-    """Customer, total, outstanding and due date, above the editor."""
-    invoice = view["invoice"]
-    contact = db.get_contact(invoice["contact_id"]) or {}
-    cell = lambda cents: ui.money(Decimal(cents) / 100)
-    return f"""
-    <div class="stat-grid mb-4">
-      {ui.stat("Customer", escape(contact.get("display_name") or "Not set"))}
-      {ui.stat("Total", cell(view["totals"]["gross"]))}
-      {ui.stat("Outstanding", cell(view["balance"]))}
-      {ui.stat("Due", escape(invoice["due_date"] or "Not set"))}
-    </div>"""
 
 
 def _invoice_steps(view):
